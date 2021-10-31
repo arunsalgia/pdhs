@@ -27,7 +27,9 @@
     "node-fetch": "^2.6.0",
     "nodemailer": "^6.4.15",
     "nodemon": "^2.0.6",
+    "pincode": "^1.0.0",
     "razorpay": "^2.0.6",
+    "read-excel-file": "^5.2.20",
     "socket.io": "^2.3.0",
     "tz-offset": "0.0.2",
     "video-player": "0.0.1"

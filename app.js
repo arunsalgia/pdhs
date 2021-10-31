@@ -2,19 +2,22 @@ require('dotenv').config()
 express = require('express');
 path = require('path');
 cookieParser = require('cookie-parser');
-logger = require('morgan');
+//logger = require('morgan');
 mongoose = require("mongoose");
 cors = require('cors');
-fetch = require('node-fetch');
+//fetch = require('node-fetch');
 _ = require("lodash");
 cron = require('node-cron');
 nodemailer = require('nodemailer');
 crypto = require('crypto');
-Razorpay = require("razorpay");
+//Razorpay = require("razorpay");
 //docx = require("docx");
 fs = require('fs');
 axios = require('axios');
-multer = require('multer');
+pin = require('pincode');
+
+//multer = require('multer');
+readXlsxFile = require('read-excel-file');
 
 
 app = express();
@@ -31,7 +34,7 @@ PASSWORDLINKVALIDTIME=10			// Password link valid time in minutes
 BASELINK='http://localhost:3000';
 if (PRODUCTION) {
 	console.log("Using cloud  base  link");
-  BASELINK='https://doctorviraag.herokuapp.com';
+  BASELINK='https://pdhsamaj.herokuapp.com';
 } else {
 	console.log("Using local base  link");
   BASELINK='http://localhost:3000';
@@ -40,7 +43,7 @@ console.log(BASELINK);
 ARCHIVEDIR= (PRODUCTION) ? "public/" : "public/" ;       // binary will be stored here
 
 PORT = process.env.PORT || 4000;
-VISITTYPE = {pending: 'pending', cancelled: 'cancelled', over: 'over', expired: 'expired'};
+//VISITTYPE = {pending: 'pending', cancelled: 'cancelled', over: 'over', expired: 'expired'};
 
 
 http = require('http');
@@ -62,18 +65,23 @@ io = require('socket.io')(httpServer, {
 router = express.Router();
 indexRouter = require('./routes/index');
 usersRouter = require('./routes/user');
-medicineRouter = require('./routes/medicine');
-patientRouter = require('./routes/patient');
-visitRouter = require('./routes/visit');
-holidayRouter = require('./routes/holiday');
-appointmentRouter = require('./routes/appointment');
-infoRouter = require('./routes/info');
-quoteRouter = require('./routes/quote');
-customerRouter = require('./routes/customer');
-imageRouter = require('./routes/image');
-walletRouter = require('./routes/wallet');
-doctorRouter = require('./routes/doctor');
-razorRouter = require('./routes/razor');
+memberRouter = require('./routes/member');
+hodRouter = require('./routes/hod');
+importRouter = require('./routes/import');
+
+
+/*
+//medicineRouter = require('./routes/medicine');
+//patientRouter = require('./routes/patient');
+//visitRouter = require('./routes/visit');
+//holidayRouter = require('./routes/holiday');
+//appointmentRouter = require('./routes/appointment');
+//infoRouter = require('./routes/info');
+//quoteRouter = require('./routes/quote');
+//customerRouter = require('./routes/customer');
+//imageRouter = require('./routes/image');
+//walletRouter = require('./routes/wallet');
+//doctorRouter = require('./routes/doctor');
 noteRouter = require('./routes/note');
 remarkRouter = require('./routes/remark');
 diagnosisRouter = require('./routes/diagnosis');
@@ -83,13 +91,19 @@ treattypeRouter = require('./routes/treattype');
 dentalTreatmentRouter = require('./routes/dentaltreatment');
 profChargeRouter = require('./routes/profcharge');
 docxRouter = require('./routes/docx');
+addOnRouter = require('./routes/addon');
+doctorTypeRouter = require('./routes/doctortype')
+
+razorRouter = require('./routes/razor');
+
+*/
 
 app.set('view engine', 'html');
-app.use(logger('dev'));
+//app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'MED', 'build')));
+app.use(express.static(path.join(__dirname, 'PDHS', 'build')));
 app.use(express.json());
 
 
@@ -97,12 +111,12 @@ app.use((req, res, next) => {
   if (req.url.includes("admin") || 
       req.url.includes("signIn") ||
       req.url.includes("Logout") ||
-      req.url.includes("doctorviraag")
+      req.url.includes("pdhsamaj")
     ){
     //req.url = "/";
     //res.redirect('/');
     console.log("Path is ", req.url);
-    res.sendFile(path.resolve(__dirname, 'MED', 'build', 'index.html'));
+    res.sendFile(path.resolve(__dirname, 'PDHS', 'build', 'index.html'));
   }
   else {
     next();
@@ -111,6 +125,11 @@ app.use((req, res, next) => {
 
 app.use('/', indexRouter);
 app.use('/user', usersRouter);
+app.use('/member', memberRouter);
+app.use('/hod', hodRouter);
+app.use('/import', importRouter);
+
+/*
 app.use('/medicine', medicineRouter);
 app.use('/patient', patientRouter);
 app.use('/visit', visitRouter);
@@ -132,32 +151,13 @@ app.use('/treattype', treattypeRouter);
 app.use('/dentaltreatment', dentalTreatmentRouter);
 app.use('/profcharge', profChargeRouter);
 app.use('/docx', docxRouter);
+app.use('/addon', addOnRouter);
+app.use('/doctortype', doctorTypeRouter);
+*/
 
 
-
-//Schema
-
-UserSchema = mongoose.Schema({
-  uid: Number,
-  userName: String,
-  displayName: String,
-  password: String,
-  status: Boolean,
-  email: String,
-  userType: String,
-  mobile: String,
-	cid: String,
-});
-
-//--- Medicine structure
-
-MasterSettingsSchema = mongoose.Schema ({
-  msId: Number,
-  msKey: String,
-  msValue: String
-  //trialExpiry: String,
-})
-
+/* 
+	Old schema
 MedicineSchema = mongoose.Schema({
 	id: String,
 	name: String,
@@ -192,6 +192,15 @@ SymptomSchema = mongoose.Schema({
 	enabled: Boolean,
 	cid: String,
 });
+
+
+MasterSettingsSchema = mongoose.Schema ({
+  msId: Number,
+  msKey: String,
+  msValue: String
+  //trialExpiry: String,
+})
+
 
 TreatTypeSchema = mongoose.Schema({
 	id: String,
@@ -348,19 +357,6 @@ CustomerSchema = mongoose.Schema({
 	enabled:Boolean,
 });
 
-/* DoctorSchema = mongoose.Schema({
-	cid: String,
-	name: String,
-	type: String,		// dentist, physician, orthopaedic
-	clinicName: String,
-	email: String,
-	mobile: String,
-	
-	
-	enabled:Boolean
-});
-*/
-
 
 ImageSchema = mongoose.Schema({
 	cid: 		String,
@@ -398,8 +394,96 @@ PaymentSchema = mongoose.Schema({
   fee: Number,
 });
 
-// models
-User = mongoose.model("user", UserSchema);
+DoctorTypeSchema = mongoose.Schema({
+	dtin: Number,
+	name: String,
+	enabled: Boolean
+});
+
+AddOnSchema = mongoose.Schema({
+	aid: Number,
+	name: String,
+	// Which doctor type can use this add on
+	// 0xFFFFFFFF indicate all types of doctors
+	doctorType: Number,			
+	enabled: Boolean
+});
+
+	*/
+
+//Schema
+
+UserSchema = mongoose.Schema({
+  uid: Number,
+  userName: String,
+  displayName: String,
+  password: String,
+  status: Boolean,
+  email: String,
+  userType: String,
+  mobile: String,
+	cid: String,
+});
+
+//--- Medicine structure
+
+
+
+
+
+
+HodSchema = mongoose.Schema({
+	hid: Number,
+	mid: Number,
+	gotra: String,
+	village: String,
+	resAddr1: String,
+	resAddr2: String,
+	resAddr3: String,
+	resAddr4: String,
+	resAddr5: String,
+	resAddr6: String,
+	suburb: String,
+	city: String,
+	pinCode: Number,
+	district: String,
+	state: String,
+	resPhone1: String,
+	resPhone2: String
+});
+
+MemberSchema = mongoose.Schema({
+	hid: Number,
+	order: Number,
+	mid: Number,
+	title: String,
+	lastName: String,
+	firstName: String,
+	middleName: String,
+	alias: String,
+	relation: String,
+	gender: String,
+	dob: Date,
+	bloodGroup: String,
+	emsStatus: String,
+	education: String,
+	educationLevel: String,
+	educationCategory: String,
+	educationField: String,
+	occupation: String,
+	mobile: String,
+	email: String,
+	officeName: String,
+	officeAddr1: String,
+	officeAddr2: String,
+	officePhone: String,
+	mobile1: String,
+	email1: String,
+	ceased: Boolean,
+	ceasedDate: Date,
+})
+
+/*
 M_Medicine = mongoose.model('Medicine', MedicineSchema);
 M_Note = mongoose.model('Note', NoteSchema);
 M_Remark = mongoose.model('Remark', RemarkSchema);
@@ -421,6 +505,18 @@ M_DentalTreatment = mongoose.model('dentaltreatment', DentalTreatmentSchema);
 M_ProfCharge = mongoose.model('profcharge', ProfessionalChargesSchema);
 M_Investigation = mongoose.model('investigations', InvestigationSchema);
 M_Payment = mongoose.model('payment', PaymentSchema);
+M_AddOn = mongoose.model('addon', AddOnSchema);
+M_DoctorType = mongoose.model('doctortype', DoctorTypeSchema);
+
+*/
+
+
+// models
+User = mongoose.model("user", UserSchema);
+
+M_Hod = mongoose.model('hod', HodSchema);
+M_Member = mongoose.model('member', MemberSchema);
+
 router = express.Router();
 
 db_connection = false;      // status of mongoose connection
@@ -525,34 +621,6 @@ cricDate = function (d)  {
   return tmp;
 }
 
-createWalletTransaction = function (userCid) {
-	/*
-	cid: String,
-  isWallet: Boolean,
-  transNumber: Number,
-  transDate: String,
-  transType: String,
-  transSubType: String,
-  transLink: Number,
-  amount: Number,
-  transStatus: Boolean,
-	*/
- 
-	currTime = new Date();
-	
-	myTrans = new M_Wallet();
-	myTrans.cid = userCid;
-  myTrans.isWallet = true;
-	
-  myTrans.transNumber = currTime.getTime();
-  myTrans.transDate = currTime;
-  myTrans.transType = "";
-  myTrans.transSubType = "";
-  myTrans.transLink = 0;
-  myTrans.amount = 0;
-	myTrans.transStatus = true;
-  return (myTrans);
-}
 
 EMAILERROR="";
 APLEMAILID='cricketpwd@gmail.com';
@@ -609,5 +677,8 @@ MINUTESTR = [
 ];
 
 // module.exports = app;
+ALLDOCTORS = 0xFFFFFFFF;
 
 MAGICNUMBER = 99999;
+
+FAMILYMF = 1000;

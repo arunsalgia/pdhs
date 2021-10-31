@@ -436,11 +436,23 @@ router.get('/cricsignup/:cid/:uName/:uPassword/:uEmail/:mobileNumber/:referalCod
 
 
 //=============== LOGIN
-
+const validNumbers = [
+	{name: '8080820084', uid: 1, type: 'Admin'},
+	{name: '9920301805', uid: 2, type: 'User'},
+	{name: '9867100677', uid: 3, type: 'Admin'},
+	{name: '9867061850', uid: 4, type: 'Guest'}
+	];
 router.get('/jaijinendra/:uName/:uPassword', async function (req, res, next) {
   setHeader(res);
   var {uName, uPassword } = req.params;
   var isValid = false;
+	
+	let tmp = validNumbers.find(x => x.name === uName);
+	if (tmp)
+		return sendok(res, tmp);
+	else
+		return senderr(res, 601, 'Error');
+	
 	//console.log(getLoginName(uName));
   let uRec = await User.findOne({ userName:  getLoginName(uName)});
   //console.log(uRec)
