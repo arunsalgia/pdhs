@@ -340,9 +340,11 @@ export default function Humad() {
 			</Box>
 			)}
 		)}	
+		{(totalPages > 1) &&
 		<Box  key={"PAGES"} className={gClasses.boxStyle} borderColor="black" borderRadius={7} border={1} >
-		<VsPagination label="Page: " showStart showEnd count={totalPages} left={left} setLeft={setLeft} current={currentPage} onClick={setCurrentPage} />
+			<VsPagination label="Page: " showStart showEnd count={totalPages} left={left} setLeft={setLeft} current={currentPage} onClick={setCurrentPage} />
 		</Box>
+		}
 		</div>	
 		)}
 	
