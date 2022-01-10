@@ -157,7 +157,7 @@ const useStyles = makeStyles((theme) => ({
 */
 
 
-const ROWSPERPAGE=10
+const ROWSPERPAGE=11
 export default function Humad() {
 	const gClasses = globalStyles();
 	const alert = useAlert();

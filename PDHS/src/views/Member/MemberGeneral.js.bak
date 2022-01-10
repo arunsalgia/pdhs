@@ -339,7 +339,10 @@ export default function MemberGeneral (props) {
 		<BlankArea />
 		<DisplaySingleLine msg1="State" msg2={currentHod.state} />
 		<BlankArea />
-		<DisplaySingleLine msg1="Res. Phone" msg2={currentHod.resPhone1 + (currentHod.resPhone2 !== "") ? " / " + currentHod.resPhone2 : "" } />
+		<DisplaySingleLine msg1="Res. Phone1" msg2={currentHod.resPhone1 + (currentHod.resPhone2 !== "") ? " / " + currentHod.resPhone2 : "" } />
+		<BlankArea />
+		<DisplaySingleLine msg1="Res. Phone2" msg2={currentHod.resPhone2} />
+		<BlankArea />
 	</Box>	
 	)}
 

@@ -286,9 +286,9 @@ export default function Pjym() {
 			<Typography className={gClasses.patientInfo2}>Lastname with</Typography>
 		</Grid>
 		{ALPHABETSTR.map( x =>
-		<Grid item>
-			<Avatar size="small" className={(currentAlphabet === x) ? gClasses.bgdeepOrange : gClasses.bgBlue } onClick={() => getPjymByAlphabet(x)}>{x}</Avatar>
-		</Grid>
+			<Grid item>
+				<Avatar size="small" className={(currentAlphabet === x) ? gClasses.bgdeepOrange : gClasses.bgBlue } onClick={() => getPjymByAlphabet(x)}>{x}</Avatar>
+			</Grid>
 		)}
 	</Grid>
 	</Box>
