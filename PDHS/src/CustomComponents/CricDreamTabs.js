@@ -24,15 +24,19 @@ import {red, blue, green, deepOrange, white} from '@material-ui/core/colors';
 import Divider from '@material-ui/core/Divider';
 
 
-import Customer from "views/SuperUser/Customer";
-import Sample from "views/SuperUser/Sample.js"
+//import Customer from "views/SuperUser/Customer";
+//import Sample from "views/SuperUser/Sample.js"
 
 import Directory from 'views/Directory/Directory'
+import Humad from 'views/Humad/Humad'
+import Pjym from 'views/Pjym/Pjym'
 
 import Profile from "views/Profile/UserProfile" 
 import Home from "views/MED/Home.js";
 
-
+// only for admin
+import Gotra from "views/SuperUser/Gotra";
+import PDHSAdmin from "views/SuperUser/PDHSAdmin";
 
 import Modal from 'react-modal';
 // import download from 'js-file-downloader';
@@ -43,7 +47,7 @@ import {cdRefresh, specialSetPos, upGradeRequired, isMobile,
   internalToText, textToInternal,
 	handleLogout,
 } from "views/functions.js"
-import { LocalSee } from '@material-ui/icons';
+
 
 
 const customStyles = {
@@ -257,10 +261,11 @@ export function CricDreamTabs() {
 	const handleHome = () => { setMenuValue(1);  }
   
   const handleDirectory = () => { handleClose(); setMenuValue(901);}
-	
-	const handleSample = () => { handleClose(); setMenuValue(801);}
-	const handleCustomer = () => { handleClose(); setMenuValue(802);}
-	
+	const handleHumad = () => { handleClose(); setMenuValue(902);}
+	const handlePjym = () => { handleClose(); setMenuValue(903);}
+
+  const handleGotra = () => { handleClose(); setMenuValue(1001);}
+	const handleAdmin = () => { handleClose(); setMenuValue(1002);}
 
   function DisplayCdItems() {
 		//console.log("CD Value", value);
@@ -272,10 +277,15 @@ export function CricDreamTabs() {
 					return <Directory />
 
 
-			case 801: return <Sample />
-			case 802: return <Customer />
+			//case 801: return <Sample />
+			//case 802: return <Customer />
 
       case 901: return <Directory />;
+      case 902: return <Humad />;
+			case 903: return <Pjym />;
+			
+      case 1001: return <Gotra />;
+      case 1002: return <PDHSAdmin />;
 
       default: return  null;
     }
@@ -397,10 +407,27 @@ export function CricDreamTabs() {
               >
 								<Typography className={classes.title}>{sessionStorage.getItem("userName")}</Typography>
 								<Divider className={classes.divider} />
+                {(true) &&
+                  <div>
+                  <MenuItem onClick={handleAdmin}>
+									<Typography className={classes.menuStyle}>Admin</Typography>
+									</MenuItem>
+                  <MenuItem onClick={handleGotra}>
+									<Typography className={classes.menuStyle}>Gotra</Typography>
+									</MenuItem>
+  								<Divider className={classes.divider} />
+                  </div>
+                }
 								{(itIsMobile) &&
 									<div>
 									<MenuItem onClick={handleDirectory}>
 									<Typography className={classes.menuStyle}>Directory</Typography>
+									</MenuItem>
+									<MenuItem onClick={handleHumad}>
+									<Typography className={classes.menuStyle}>Humad</Typography>
+									</MenuItem>
+									<MenuItem onClick={handlePjym}>
+									<Typography className={classes.menuStyle}>Pjym</Typography>
 									</MenuItem>
 									</div>
 								}
@@ -436,6 +463,8 @@ export function CricDreamTabs() {
 					{(itIsMobile === false) &&
 						<div>
 						<Button color="inherit" className={classes.visitButton} onClick={handleDirectory}>Directory</Button>
+						<Button color="inherit" className={classes.visitButton} onClick={handleHumad}>Humad</Button>
+						<Button color="inherit" className={classes.visitButton} onClick={handlePjym}>Pjym</Button>
 						</div>
 					}
 					{(false) &&

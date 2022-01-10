@@ -4,11 +4,15 @@ import {
   grayColor,
   hexToRgb
 } from "assets/jss/material-dashboard-react.js";
-import { red, blue, green, deepOrange, deepPurple, yellow, lightGreen } from '@material-ui/core/colors';
+import { red, blue, green, grey, deepOrange, deepPurple, yellow, lightGreen } from '@material-ui/core/colors';
 import { makeStyles } from '@material-ui/core/styles';
 
 
 const globalStyles = makeStyles((theme) => ({
+	fullWidth: {
+		display: "flex-root",
+    width: "100%"
+	},
   dateTimeBlock: {
 		color: 'blue',
 		//fontSize: theme.typography.pxToRem(28),
@@ -81,6 +85,13 @@ const globalStyles = makeStyles((theme) => ({
 		fontSize: theme.typography.pxToRem(14),
 		fontWeight: theme.typography.fontWeightBold,
 	},
+  blueSelectLabel: {
+		color: 'blue',
+		fontSize: theme.typography.pxToRem(14),
+		fontWeight: theme.typography.fontWeightBold,
+    margin: "10px 10px", 
+    padding: "10px 10px", 
+	},
 	functionSelected: {
 		fontSize: theme.typography.pxToRem(20),
 		fontWeight: theme.typography.fontWeightBold,
@@ -99,11 +110,20 @@ const globalStyles = makeStyles((theme) => ({
 	blue: {
 		color: 'blue',
 	},
+  black: {
+		color: 'black',
+	},
+  grey: {
+		color: 'grey',
+	},
 	bgRed: {
 		backgroundColor: 'red',
 	},
 	bgBlue: {
 		backgroundColor: 'blue',
+	},
+	bgdeepOrange: {
+		backgroundColor: deepOrange[900],
 	},
 	divider: {
 		backgroundColor: 'blue',
@@ -123,6 +143,11 @@ const globalStyles = makeStyles((theme) => ({
     //background: '#535454',
     //color: '#fff',
   },
+  titleOrange: {
+		fontSize: theme.typography.pxToRem(18),
+		fontWeight: theme.typography.fontWeightBold,	
+		color: deepOrange[900],
+	},
 	title: {
 		fontSize: theme.typography.pxToRem(18),
 		fontWeight: theme.typography.fontWeightBold,	

@@ -743,47 +743,28 @@ export async function DisplayLatestAPLVersion() {
 
 
 
-export function DisplayPatientDetails(props) {
+export function DisplayGotraBox(props) {
 	const gClasses = globalStyles();
 	let _button1 = (props.button1 == null);
 	let _button2 = (props.button2 == null);
 	let _button3 = (props.button3 == null);
 	let _button4 = (props.button4 == null);
 	let _button5 = (props.button5 == null);
-	//console.log(_button1, _button2, _button3, _button4, _button5);
 return (
 	<Box className={gClasses.boxStyle} borderColor="black" borderRadius={7} border={1} >
 		<div align="center" >
 		<Typography>
-		<span className={gClasses.patientName}>{props.patient.displayName}</span>
+		<span className={gClasses.patientName}>{props.gotra.name}</span>
 		</Typography>
 		</div>
-		<div align="left" >
-		<Typography>
-			<span className={gClasses.patientInfo}>Id: </span>
-			<span className={gClasses.patientInfo2}>{props.patient.pid}</span>
-		</Typography>
-		<Typography> 
-			<span className={gClasses.patientInfo}>Age: </span>
-			<span className={gClasses.patientInfo2}>{dispAge(props.patient.age, props.patient.gender)}</span>
-		</Typography>
-		<Typography > 
-			<span className={gClasses.patientInfo}>Email: </span>
-			<span className={gClasses.patientInfo2}>{dispEmail(props.patient.email)}</span>
-		</Typography>
-		<Typography > 
-			<span className={gClasses.patientInfo}>Mob.: </span>
-			<span className={gClasses.patientInfo2}>{dispMobile(props.patient.mobile)}</span>
-		</Typography>
 		<BlankArea />
 		<div align="right">
-		{(!_button1) && props.button1}
-		{(!_button2) && props.button2}
-		{(!_button3) && props.button3}
-		{(!_button4) && props.button4}
-		{(!_button5) && props.button5}
+			{(!_button1) && props.button1}
+			{(!_button2) && props.button2}
+			{(!_button3) && props.button3}
+			{(!_button4) && props.button4}
+			{(!_button5) && props.button5}
 		</div>
-	</div>
 	</Box>
 )}
 

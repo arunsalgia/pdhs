@@ -7,15 +7,15 @@ import { UserContext } from "./UserContext";
 import "assets/css/material-dashboard-react.css?v=1.9.0";
 // import { DesktopWindows } from "@material-ui/icons";
 import { CricDreamTabs, setTab }from "CustomComponents/CricDreamTabs"
-import axios from "axios";
-import SignIn from "views/Login/SignIn"
-import SignUp from "views/Login/SignUp.js";
 import Welcome from "views/MED/Welcome";
-import Doctor from "views/MED/Doctor";
-import ResetPassword from "views/Login/ResetPassword";
+import SignIn from "views/Login/SignIn"
+
+//import SignUp from "views/Login/SignUp.js";
+//import Doctor from "views/MED/Doctor";
+//import ResetPassword from "views/Login/ResetPassword";
 //import Session from "views/Session/Session"
 //import JoinGroup from "views/Group/JoinGroup.js"
-import ForgotPassword from "views/Login/ForgotPassword.js";
+//import ForgotPassword from "views/Login/ForgotPassword.js";
 import IdleTimer from 'react-idle-timer'
 
 import { PinDropSharp } from "@material-ui/icons";
@@ -128,23 +128,14 @@ function AppRouter() {
 		else if (sessionStorage.getItem("currentLogin") ===  "SIGNIN") {
 			return <SignIn />
 		} 
-		else if (sessionStorage.getItem("currentLogin") ===  "SIGNUP") {
-			return <SignUp />
-		} 
-		else if (sessionStorage.getItem("currentLogin") ===  "FORGOT") {
-			return <ForgotPassword />
-		} 
-		else if (sessionStorage.getItem("currentLogin") ===  "DOCTOR") {
-			return <Doctor />
-		} 
 		else  {
 			let myLink = checkResetPasswordRequest();
 			//console.log("Link", myLink);
 			if (myLink !== "") {
 				sessionStorage.setItem("currentUserCode", myLink);
 				hist.push("/");
-				//console.log(history, hist);
-				return (<ResetPassword />);
+				//return (<ResetPassword />);
+        return null;
 			} else {
 				//console.log("About to call Welcome");
 				if (process.env.REACT_APP_SHOWWELCOMEPAGE === 'true')

@@ -3,7 +3,10 @@ const {
 	ALPHABETSTR,
 	getLoginName, getDisplayName,
 	getMaster, setMaster,
+	fetchPinDetails,
 } = require('./functions'); 
+
+
 
 router.use('/', function(req, res, next) {
   setHeader(res);
@@ -25,37 +28,91 @@ router.get('/get/:hid', async function(req, res, next) {
 	else			senderr(res, 601, {hid: 0});
 });
 
-router.get('/edit/:cid/:oldNote/:newNote', async function(req, res, next) {
+
+router.get('/hodnames', async function(req, res, next) {
   setHeader(res);
   
-  var {cid, oldNote, newNote, desc, precaution} = req.params;
-	let id;
-	var mRec;
-	
-	let old_lname = getLoginName(oldNote);
-	let new_lname = getLoginName(newNote);
-	
-	if (old_lname != new_lname) {
-		// just check that of new medicine already in database
-		mRec = await M_Hod.findOne({cid: cid, id: new_lname});
-		if (mRec) {
-			senderr(res, 601, "New Note already in database");
-			return;
-		}
-	} 
-	
-	// check if old name really exists!!!! Only then we can modify it
-	mRec = await M_Hod.findOne({cid: cid, id: old_lname});
-	if (!mRec) {
-		senderr(res, 611, "Old Note not found in database");
-		return;
-	}
+  var tmp = await M_Hod.find({});
+	let midList = _.map(tmp, 'mid');
 
-	// good. now update the details
-	mRec.id = new_lname;
-	mRec.name = newNote;
-	mRec.enabled = true;
+	let allHodNames = await M_Member.find({mid: {$in: midList}});
+	allHodNames = _.map(allHodNames, o => _.pick(o, ['hid', 'mid', 'title', 'firstName', 'lastName', 'middleName', 'alias']));
+	console.log(allHodNames);
+	sendok(res, allHodNames);
+});
+
+router.get('/list', async function(req, res, next) {
+  setHeader(res);
+  
+  var tmp = await M_Hod.find({});
+	sendok(res, tmp);
+});
+
+
+router.get('/mumbailist', async function(req, res, next) {
+  setHeader(res);
+	let myQuery = {$or: MUMBAIREGION };
+	//console.log(myQuery);
+  var tmp = await M_Hod.find(myQuery);
+	sendok(res, tmp);
+});
+
+router.get('/pincode/:pinNumber', async function(req, res, next) {
+  setHeader(res);
+  
+  var {pinNumber } = req.params;
+	
+	let myPinDetails = await fetchPinDetails(pinNumber);
+	sendok(res, myPinDetails);
+});
+
+router.get('/testpin', async function(req, res, next) {
+  setHeader(res);
+	
+	let myPinDetails = await PinCodeSchema.findOne({ pinCode: 400066 })
+	sendok(res, myPinDetails);
+});
+
+
+router.get('/updatedetails/:hid/:hodData', async function(req, res, next) {
+  setHeader(res);
+  
+  var {hid, hodData} = req.params;
+	hid = Number(hid);
+	hodData = JSON.parse(hodData);
+
+		// first verify pin code 
+		let pDetails = await fetchPinDetails(hodData.pinCode);
+		//console.log(pDetails)
+		if (!pDetails) return senderr(res, 602, "Invalid Pin code");
+	
+	let	mRec = await M_Hod.findOne({hid: hid});
+	if (!mRec) return senderr(res, 601, "Invalid Hid");
+	
+	mRec.gotra				= hodData.gotra;
+	mRec.village			= hodData.village;
+
+	mRec.addr1				= hodData.addr1;
+	mRec.addr2				= hodData.addr2;
+	mRec.addr3				= hodData.addr3;
+	mRec.addr4				= hodData.addr4;
+	mRec.addr5				= hodData.addr5;
+
+	mRec.suburb				= hodData.suburb;
+	mRec.city					= hodData.city;
+	mRec.pinCode			= hodData.pinCode;
+
+	mRec.resPhone1		= hodData.resPhone1;
+	mRec.resPhone2		= hodData.resPhone2;
+
+	// pin code details
+	mRec.district 		= pDetails.District;
+	mRec.division			= pDetails.Division;
+	mRec.state 				= pDetails.State;
+
 	mRec.save();
+	//console.log(mRec);
+
 	sendok(res, mRec);
 });
 
@@ -86,6 +143,34 @@ router.get('/list/:cid', async function(req, res, next) {
 		sendok(res, objs);
   });
 });
+
+router.get('/gotra/list', async function(req, res, next) {
+  setHeader(res);
+  
+	let gList = await M_Gotra.find({}, {_id: 0, name: 1}).sort({name: 1})
+	sendok(res, gList);
+});
+
+router.get('/gotra/add/:newGotra', async function(req, res, next) {
+  setHeader(res);
+  
+	var { newGotra } = req.params;
+
+	let lGotra = getLoginName(newGotra);
+	let dGotra = getDisplayName(newGotra);
+
+	let gRec = await M_Gotra.findone({id: lGotra});
+	if (!gRec) {
+		gRec = new M_Gotra();
+	}
+	gRec.id = lGotra;
+	gRec.name = dGotra;
+	gRec.enabled = true;
+	gRec.save();
+	sendok(res, gRec);
+});
+
+
 
 function sendok(res, usrmsg) { res.send(usrmsg); }
 function senderr(res, errcode, errmsg) { res.status(errcode).send(errmsg); }

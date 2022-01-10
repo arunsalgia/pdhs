@@ -1,20 +1,8 @@
-//const { pin } = require("pincode");
-
-const {  akshuGetUser, GroupMemberCount,  
+const {   
   encrypt, decrypt, dbencrypt, dbToSvrText, svrToDbText, dbdecrypt,
-	numberDate, 
-	generateOrder, generateOrderByDate,
-	setOldPendingAppointment,
 } = require('./functions'); 
 var router = express.Router();
 
-function getOrderNumber(year, month, date, hours, minutes) {
-	let chkOrder = ((year* 100) + month)*100 + date;
-	console.log("Chkorder", chkOrder);
-	chkOrder = ((chkOrder * 100) + hours) * 100 + minutes;
-	console.log(chkOrder);
-	return chkOrder;
-}
 
 /* GET users listing. */
 router.use('/', function(req, res, next) {
@@ -50,9 +38,9 @@ router.get('/namelist/:fName/:mName/:lName', async function (req, res) {
 		filterQuery = {firstName: partFind(fName),  middleName: partFind(mName), lastName: partFind(lName)};
 
 	filterQuery["ceased"] = false;
-	console.log(filterQuery);
+	//console.log(filterQuery);
 
-	let myData = await M_Member.find(filterQuery).limit(36).sort({lastName: 1, firstName: 1, middleName: 1});
+	let myData = await M_Member.find(filterQuery).limit(54).sort({lastName: 1, firstName: 1, middleName: 1});
 	//console.log(myData);
 	sendok(res, myData);
 });		
@@ -69,6 +57,164 @@ router.get('/hod/:hid', async function (req, res) {
 	sendok(res, myData);
 });		
 
+router.post('/sethod/:mid', async function (req, res) {
+  setHeader(res);
+  var {mid } = req.params;
+	mid = Number(mid);
+	let hid = Math.trunc(mid / FAMILYMF);
+
+	let hodRec = await M_Hod.findOne({hid: hid});
+	hodRec.mid = mid;
+	hodRec.save();
+	
+	let myData = await M_Member.find({hid: hid, ceased: false}).sort({order: 1});
+	myData[0].relation = "Relative";
+	for(let i=0, startOrder=1; i<myData.length; ++i) {
+		if (myData[i].mid === mid) {
+			myData[i].order = 0;
+			myData[i].relation = "Self";
+		} else	{
+			myData[i].order = startOrder++;
+		}
+		myData[i].save();
+	}
+	sendok(res, "Done");
+});	
+
+router.post('/ceased/:mid/:datestr', async function (req, res) {
+  setHeader(res);
+  var {mid, datestr } = req.params;
+	mid = Number(mid);
+	let hid = Math.trunc(mid / FAMILYMF);
+	let d = new Date(
+		Number(datestr.substr(0,4)), 
+		Number(datestr.substr(4, 2))-1,
+		Number(datestr.substr(6, 2)),
+		0, 0, 0
+	);
+	
+	// get all members of the family sorted by 'order'
+	let myData = await M_Member.find({hid: hid}).sort({order: 1});
+	
+	// update ceased information in member
+	let tmp = myData.find(x => x.mid === mid);
+	tmp.ceased = true;
+	tmp.ceasedDate = d;
+	
+	// update details of member's spouse
+	tmp = myData.find(x => x.mid === tmp.spouseMid);
+	if (tmp) {
+		tmp.emsStatus = (myData.gender === "Male") ? "Widower" : "Widow";
+		tmp.spouseMid = 0;
+	}
+	
+	for(let i=0, startOrder=0; i<myData.length; ++i) {
+		if (myData[i].mid !== mid) {
+			myData[i].order = startOrder++;
+		}
+		await myData[i].save();
+	}
+
+	// also update in Humad, PJYM and PRWS
+
+	sendok(res, "Done");
+});
+
+
+router.get('/split/:newFamilyData', async function (req, res) {
+  setHeader(res);
+  var {newFamilyData } = req.params;
+	newFamilyData = JSON.parse(newFamilyData);
+	let hid = Math.trunc(newFamilyData.hod / FAMILYMF);
+	let tmpRec = await M_Hod.find({}).limit(1).sort({hid: -1});
+	let newHid = tmpRec[0].hid + 1;
+
+	let hidRec = await M_Hod.findOne({hid: hid});
+	
+	let newRec = new M_Hod(_.omit(hidRec, '_id'));
+	newRec.hid = newHid;
+	newRec.mid = newRec.hid*FAMILYMF + 1;		// mid of HOD
+	console.log(newRec);
+	await newRec.save();
+
+	let allMemRec = await M_Member.find({hid: hid, ceased: false});
+	let newMid, newOrder, newRelation;
+
+	// now rectify order number of members who are not getting transferred
+	for (let i=0, orderNo=1; i<allMemRec.length; ++i) {
+		if (!newFamilyData.memberList.includes(allMemRec[i].mid)) {
+			console.log(allMemRec[i].mid);
+			if (allMemRec[i].mid === hidRec.mid) {
+				newOrder = 0;
+			} else {
+				newOrder = orderNo++
+			}
+			allMemRec[i].order = newOrder;
+			allMemRec[i].save();
+		}
+	}
+	
+	// now transfer all selected members to new family
+	for (let i=0, orderNo=1, seqNo=2; i<allMemRec.length; ++i) {
+		if (newFamilyData.memberList.includes(allMemRec[i].mid)) {
+			console.log(allMemRec[i].mid);
+			if (allMemRec[i].mid === newFamilyData.hod) {
+				newMid = newRec.hid*FAMILYMF + 1;
+				newOrder = 0;
+				newRelation = "Self";
+			} else {
+				newMid = newRec.hid*FAMILYMF + seqNo;
+				seqNo++;
+				newOrder = orderNo++
+				newRelation = allMemRec[i].relation;
+			}
+			allMemRec[i].hid = newRec.hid
+			allMemRec[i].mid = newMid;
+			allMemRec[i].order = newOrder;
+			allMemRec[i].relation = newRelation;
+			allMemRec[i].save();
+		}
+	}
+
+	sendok(res, "OK");
+});	
+
+
+router.post('/scrollup/:mid', async function (req, res) {
+  setHeader(res);
+  var {mid } = req.params;
+	mid = Number(mid);
+	let hid = Math.trunc(mid / FAMILYMF);
+
+	let myData = await M_Member.find({hid: hid, ceased: false}).sort({order: 1});
+	myData[0].relation = "Relative";
+	for(let i=0, startOrder=1; i<myData.length; ++i) {
+		if (myData[i].mid !== mid) continue;
+		--myData[i].order;
+		++myData[i-1].order;		
+		myData[i-1].save();
+		myData[i].save();
+	}
+	sendok(res, "Done");
+});	
+
+router.post('/scrolldown/:mid', async function (req, res) {
+  setHeader(res);
+  var {mid } = req.params;
+	mid = Number(mid);
+	let hid = Math.trunc(mid / FAMILYMF);
+
+	let myData = await M_Member.find({hid: hid, ceased: false}).sort({order: 1});
+	myData[0].relation = "Relative";
+	for(let i=0, startOrder=1; i<myData.length; ++i) {
+		if (myData[i].mid !== mid) continue;
+		++myData[i].order;
+		--myData[i+1].order;		
+		myData[i].save();
+		myData[i+1].save();
+	}
+	sendok(res, "Done");
+});	
 
 
 router.get('/delete/:cid/:year/:month/:date/:order/:pid', async function (req, res) {
@@ -150,262 +296,7 @@ router.get('/list/date/:cid/:year/:month/:date', async function (req, res) {
 	publishAppointments(res, {cid: cid, date: Number(date), month: Number(month), year: Number(year)})
 });		
 
-router.get('/test/:pinCode', async function (req, res) {
-  setHeader(res);
-  var {pinCode } = req.params;
-	pin.seachByPin('560057', function (response){
-		response.forEach(function (data) {
-		console.log(data);
-		});
-		});
-	sendok(res, "OK"); 
-	//publishAppointments(res, {cid: cid, date: Number(date), month: Number(month), year: Number(year)})
-});	
 
-router.get('/pendinglist/date/:cid/:year/:month/:date/:days', async function (req, res) {
-  setHeader(res);
-  var {cid, date, month, year, days } = req.params;
-	let iDate = Number(date);
-	let iMonth = Number(month);
-	let iYear = Number(year);
-	let iDays = Number(days);
-	
-	let startOrder = generateOrder(iYear, iMonth, iDate, 0, 0);
-	
-	let endDate = new Date(iYear, iMonth, iDate +iDays);
-	let endOrder = generateOrder(
-		endDate.getFullYear(), endDate.getMonth(), endDate.getDate(), 
-		0, 0);
-	let myFilter = { cid: cid, visit: VISITTYPE.pending, order: { $lte: endOrder, $gte: startOrder} }
-	publishAppointments(res, myFilter);
-});		
-
-router.get('/pendinglist/all/:cid', async function (req, res) {
-  setHeader(res);
-  var { cid } = req.params;
-
-	publishAppointments(res, { cid: cid, visit: VISITTYPE.pending })
-});		
-
-router.get('/list/pid/:cid/:pid', async function (req, res) {
-  setHeader(res);
-  var { cid, pid } = req.params;
-	//console.log(cid, pid);
-	publishAppointments(res, { cid: cid, pid: Number(pid) })
-});		
-
-router.get('/pendinglist/pid/:cid/:pid', async function (req, res) {
-  setHeader(res);
-  var { cid, pid } = req.params;
-	//console.log(cid, pid);
-	publishAppointments(res, { cid: cid, pid: Number(pid), visit: VISITTYPE.pending})
-});		
-
-router.get('/pendinglist/date/:cid/:year/:month/:date', async function (req, res) {
-  setHeader(res);
-  var {cid, date, month, year } = req.params;
-	
-	publishAppointments(res, { cid: cid, visit: VISITTYPE.pending, date: Number(date), month: Number(month), year: Number(year)})
-});		
-
-router.get('/list/month/:cid/:year/:month', async function (req, res) {
-  setHeader(res);
-  var {cid, month, year } = req.params;
-	
-	publishAppointments(res, {cid: cid, month: Number(month), year: Number(year)})
-});		
-
-router.get('/list/year/:cid/:year', async function (req, res) {
-  setHeader(res);
-  var { cid, year } = req.params;
-	
-	publishAppointments(res, {cid: cid, year: Number(year)});
-});		
-
-router.get('/list/all/:cid', async function (req, res) {
-  setHeader(res);
-	var {cid} = req.params;
-	
-	publishAppointments( res, {cid: cid} );
-});		
-
-router.get('/list/all/fromtoday/:cid', async function (req, res) {
-  setHeader(res);
-	var {cid} = req.params;
-	
-	let thisTime = new Date();
-	//thisTime = new Date(thisTime.getFullYear(), thisTime.getMonth(), thisTime.getDate(), 0, 0, 0);
-	//console.log(thisTime);
-	let myMon = thisTime.getMonth();
-	let myDat = thisTime.getDate();
-	
-	let chkOrder = ((thisTime.getFullYear() * 100) + thisTime.getMonth())*100 + thisTime.getDate();
-	chkOrder *= 100 * 100;
-	console.log("Chkorder", chkOrder);
-	
-publishAppointments( res, {cid: cid, order: {$gte: chkOrder}, visit: {$nin: [VISITTYPE.cancelled, VISITTYPE.expired] } } );
-});		
-
-
-router.get('/count/patient/:cid/:pid', async function (req, res) {
-  setHeader(res);
-  var {cid, pid, year } = req.params;
-	pid = Number(pid);
-	
-	/*
-    $group : {
-       _id: $date,
-       //user_totaldocs: { $sum: "$user_totaldocs"}, // for your case use local.user_totaldocs
-       //user_totalthings: { $sum: "$user_totalthings" }, // for your case use local.user_totalthings
-       count: { $sum: 1 } // for no. of documents count
-    }	
-		[
-  { $match: { age: { $lt: 30 } } },
-  {
-    $group: {
-      _id: '$age',
-      count: { $sum: 1 }
-    }
-  }
-]
-*/
-	let filterQuery = [
-		{ $match: { cid: cid, pid: pid, visit: VISITTYPE.pending } },
-		{ $group: { _id: '$pid', count: { $sum: 1 } } }
-  ];
-	let calcelledQuery = [
-		{ $match: { cid: cid, pid: pid, visit: VISITTYPE.cancelled } },
-		{ $group: { _id: '$pid', count: { $sum: 1 } } }
-  ];
-	let overQuery = [
-		{ $match: { cid: cid, pid: pid, visit: {$nin : [VISITTYPE.pending, VISITTYPE.cancelled]} } },
-		{ $group: { _id: '$pid', count: { $sum: 1 } } }
-  ];
-	
-	let p, c, o;
-	p = await M_Appointment.aggregate(filterQuery)
-	c = await M_Appointment.aggregate(calcelledQuery)
-	o = await M_Appointment.aggregate(overQuery)
-	
-	let pCount = (p.length > 0) ? p[0].count : 0;
-	let cCount = (c.length > 0) ? c[0].count : 0;
-	let oCount = (o.length > 0) ? o[0].count : 0;
-
-	sendok(res, {pending: pCount, cancelled: cCount, visit: oCount});
-});		
-
-
-router.get('/count/month/:cid/:year/:month', async function (req, res) {
-  setHeader(res);
-  var {cid, month, year } = req.params;
-	
-	/*
-    $group : {
-       _id: $date,
-       //user_totaldocs: { $sum: "$user_totaldocs"}, // for your case use local.user_totaldocs
-       //user_totalthings: { $sum: "$user_totalthings" }, // for your case use local.user_totalthings
-       count: { $sum: 1 } // for no. of documents count
-    }	
-		[
-  { $match: { age: { $lt: 30 } } },
-  {
-    $group: {
-      _id: '$age',
-      count: { $sum: 1 }
-    }
-  }
-]
-*/
-	let iy = Number(year);
-	let im = Number(month);
-	
-	let ddd = new Date(iy, im+1, 0);
-	let lastDate = ddd.getDate();
-	
-	
-	let filterQuery = [
-		{ $match: { cid: cid, year: iy, month: im, visit: VISITTYPE.pending } },
-		{ $group: { _id: '$date', count: { $sum: 1 } } }
-  ];
-	let calcelledQuery = [
-		{ $match: { cid: cid, year: iy, month: im, visit: VISITTYPE.cancelled } },
-		{ $group: { _id: '$date', count: { $sum: 1 } } }
-  ];
-	let overQuery = [
-		{ $match: { cid: cid, year: iy, month: im, visit: {$nin : [VISITTYPE.pending, VISITTYPE.cancelled]} } },
-		{ $group: { _id: '$date', count: { $sum: 1 } } }
-  ];
-	
-	let p, c, o;
-	p = await M_Appointment.aggregate(filterQuery)
-	c = await M_Appointment.aggregate(calcelledQuery)
-	o = await M_Appointment.aggregate(overQuery)
-
-	/***
-	let chk = await await M_Appointment.find({visit: {$nin : ["cancelled", "pending"]} });
-	if (chk.length > 0) {
-		console.log(chk[0].visit);
-		let allRecs = await M_Visit.findOne({_id: chk[0].visit});
-		console.log(allRecs);
-	}
-	***/
-	
-	let finalData = [];
-	let pending, cancelled, over;
-	let xxx;
-	for(let i=1; i<=lastDate; ++i) {
-		xxx = p.find(x => x._id === i);
-		pending = (xxx) ? xxx.count : 0;
-		
-		xxx = c.find(x => x._id === i);
-		cancelled = (xxx) ? xxx.count : 0;
-		
-		xxx = o.find(x => x._id === i);
-		over = (xxx) ? xxx.count : 0;
-		
-		//if ((pending + cancelled + over) > 0)
-		finalData.push({date: i, pending: pending, cancelled: cancelled, visit: over});
-	}
-	//console.log(finalData);
-	
-	sendok(res, finalData);
-});		
-
-router.get('/cancel/pending', async function (req, res) {
-  setHeader(res);
-	await cancelOldAppt();
-	sendok(res, "Cancelled");
-});
-	
-async function publishAppointments(res, filter) {
-	//console.log(filter)
-	let hRec = await M_Appointment.find(filter);
-	//console.log(hRec);
-	sendok(res, hRec);
-};
-
-async function cancelOldAppt() {
-	// cancel all appointment as of yesterday
-	let thisTime = new Date();
-	//thisTime = new Date(thisTime.getFullYear(), thisTime.getMonth(), thisTime.getDate(), 0, 0, 0);
-	console.log(thisTime);
-	let myMon = thisTime.getMonth();
-	let myDat = thisTime.getDate();
-	
-	let chkOrder = ((thisTime.getFullYear() * 100) + thisTime.getMonth())*100 + thisTime.getDate();
-	//console.log("Chkorder", chkOrder);
-	chkOrder *= 100 * 100;
-	console.log("Chkorder", chkOrder);
-	
-	let allPendingAppts = await M_Appointment.find({visit: VISITTYPE.pending, order: {$lte: chkOrder} } );
-	console.log("Count: ",allPendingAppts.length);
-	
-	for(let i=0; i<allPendingAppts.length; ++i) {
-		allPendingAppts[i].visit = VISITTYPE.cancelled;
-		allPendingAppts[i].save();
-		//console.log(allPendingAppts[i].apptTime, allPendingAppts[i].order);
-	}
-}
 
 
 

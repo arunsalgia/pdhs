@@ -689,7 +689,7 @@ export function dispOnlyAge(xxx) {
 export function dispAge(xxx, gender) {
   let d = new Date(xxx);
   let myyear = d.getFullYear();
-  //console.log(d, myyear);
+  console.log(d, myyear);
   let age = ""
   if (myyear > 1900) {
     let tmp = (new Date().getTime() - d.getTime()) / 86400000;

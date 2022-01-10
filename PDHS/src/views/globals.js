@@ -9,8 +9,15 @@ export const str1by2 = String.fromCharCode(189)
 export const str3by4 = String.fromCharCode(190)
 export const INR = String.fromCharCode(8377)
 
+
 export const VISITTYPE = {pending: "pending", expired: "expired", cancelled: "cancelled", visit: ""};
 export const WALLETTYPE = {all: "all", wallet: "wallet", bonus: "bonus"};
+
+export const ALPHABETSTR = [
+"A", "B", "C", "D", "E", "F", "G", "H", "I", "J",
+"K", "L", "M", "N", "O", "P", "Q", "R", "S", "T",
+"U", "V", "W", "X", "Y", "Z"
+];
 
 export const WEEKSTR = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 export const SHORTWEEKSTR = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -108,4 +115,57 @@ export const ChildToothRange = {
 	lowerLeft: {start: 71, end: 75},
 	lowerRight:  {start: 81, end: 85}
 }
+
 export const MAGICNUMBER = 99999;
+
+export const MEMBERTITLE = ["Shri", "Smt.", "Mast", "Ms."];
+
+export const GENDER = ["Male", "Female", "Other"];
+
+export const BLOODGROUP = ["O+", "O-", "A+", "A-", "B+", "B-", "AB+", "AB-"];
+
+export const MARITALSTATUS = ["Married", "Unmarried", "Widower", "Widow", "Divorcee"];
+
+export const SELFRELATION = ["Self"];
+
+export const CASTE = ["Humad", "NonHumad"];
+
+export const HUMADSUBCASTRE = ["Dasha", "Visha"];
+
+export const MUMBAIREGION = ["mumbai", "than", "thana", "bhayan", "virar", "palgh" ];
+
+export const RELATION = [
+	"Brother",
+	"Brother in Law",
+	"Daughter",
+	"Daughter in Law",
+	"Family",
+	"Father",
+	"Father in Law",
+	"Grand Daughter",
+	"Grand Daughter in Law",
+	"Grand Father",
+	"Grand Father in Law",
+	"Grand Mother",
+	"Grand Mother in Law",
+	"Grand Son",
+	"Grand Son in Law",
+	"Gr. Grand Daughter",
+	"Gr. Grand Daughter in Law",
+	"Gr. Grand Father",
+	"Gr. Grand Father in Law",
+	"Gr. Grand Mother",
+	"Gr. Grand Mother in Law",
+	"Gr. Grand Son",
+	"Gr. Grand Son in Law",
+	"Mother",
+	"Mother in Law",
+	"Nephew",
+	"Neice",
+	"Relative",
+	"Sister",
+	"Sister in Law",
+	"Son",
+	"Son in Law",
+	"Spouse"
+];

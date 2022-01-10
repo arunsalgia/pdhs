@@ -17,10 +17,8 @@ import VsCheckBox from "CustomComponents/VsCheckBox";
 //import VsList from "CustomComponents/VsList";
 
 import MemberGeneral from "views/Member/MemberGeneral"
-import MemberPersonal from "views/Member/MemberPersonal"
-import MemberOffice from "views/Member/MemberOffice"
-import MemberSpouse from "views/Member/MemberSpouse"
 
+//import { useLoading, Audio } from '@agney/react-loading';
 import axios from "axios";
 import Drawer from '@material-ui/core/Drawer';
 import { useAlert } from 'react-alert'
@@ -72,8 +70,10 @@ import {  } from 'views/functions';
 //import { updateCbItem } from 'typescript';
 
 var loginHid, loginMid;
-var adminData = {superAdmin: false, humadAdmin: false, pjymAdmin: false, prwsAdmin: false} ;
+var adminData;
 export default function Member(props) {
+  
+  //const classes = useStyles();
 	const gClasses = globalStyles();
 	const alert = useAlert();
 
@@ -102,6 +102,12 @@ export default function Member(props) {
 	const [hodRadio, setHodRadio] = useState(1);
 	const [cbList, setCbList] = useState([]);
 	const [isDrawerOpened, setIsDrawerOpened] = useState("");
+	//const [isListDrawer, setIsListDrawer] = useState("");
+
+	//const [remember, setRemember] = useState(false);
+	//const [filterItem, setFilterItem] = useState("");
+	//const [filterItemText, setFilterItemText] = useState("");
+	//const [filterItemArray, setFilterItemArray] = useState([]);
 	
 	const [emurGotra, setEmurGotra] = useState("");
 	const [emurVillage, setEmurVillage] = useState("");
@@ -124,6 +130,13 @@ export default function Member(props) {
 	const [emurAddr12, setEmurAddr12] = useState("");
 	const [emurAddr13, setEmurAddr13] = useState("");
 
+	//const [emurCity, setEmurCity] = useState("");
+	//const [emurSuburb, setEmurSuburb] = useState("");
+
+	//const [emurVisitNumber, setEmurIndex] = useState(0);
+	//const [emurNumber, setEmurNumber] = useState(0);
+	//const [emurName, setEmurName] = useState("");
+
 	const [registerStatus, setRegisterStatus] = useState(0);
 
 	
@@ -134,14 +147,14 @@ export default function Member(props) {
 			await getHod(props.member.hid);
 			await getHodMembers(props.member.hid);
 			await setCurrentMemberData(props.member)
-			//setSelection("General");
+			setSelection("General");
 			getGotraList();
 		}
 		//setCurrentMember(getMemberName(props.member));
 		loginHid = Number(sessionStorage.getItem("hid"));
 		loginMid = Number(sessionStorage.getItem("mid"));
 		adminData = JSON.parse(sessionStorage.getItem("adminRec"));
-		//console.log(adminData);
+		console.log(adminData);
 		getDetails();
 		
   }, []);
@@ -152,7 +165,6 @@ export default function Member(props) {
 			let myUrl = `${process.env.REACT_APP_AXIOS_BASEPATH}/hod/get/${hid}`
 			let resp = await axios.get(myUrl);
 			setCurrentHod(resp.data);
-			sessionStorage.setItem("hod", JSON.stringify(resp.data));
 		} catch (e) {
 			console.log(e);
 			alert.error(`Error fetching HOD details of ${hid}`);
@@ -223,11 +235,6 @@ export default function Member(props) {
 	
 	async function setSelection(item) {
 		setRadioRecord(0);
-		sessionStorage.setItem("hod", JSON.stringify(currentHod));
-		sessionStorage.setItem("members", JSON.stringify(memberArray));
-		setCurrentSelection(item);
-		return;
-		
 		if (item === "Spouse") {
 
 			// create groom array
@@ -941,7 +948,7 @@ export default function Member(props) {
 
 
 
-	
+
 	return (
 	<div className={gClasses.webPage} align="center" key="main">
 	{/*<Container component="main" maxWidth="lg">*/}
@@ -953,15 +960,23 @@ export default function Member(props) {
 		<MemberGeneral hod={currentHod} />
 	}
 	{(currentSelection === "Personal") &&
-		<MemberPersonal />
+		<div>
+		<DisplayPersonalButtons />
+		<DisplayPersonalInformation />
+		</div>
 	}
 	{(currentSelection === "Office") &&
-		<MemberOffice />
+		<div>
+		<DisplayOfficeButtons />
+		<DisplayOfficeInformation />
+		</div>
 	}
 	{(currentSelection === "Spouse") &&
-		<MemberSpouse />
+		<div>
+		<DisplaySpouseButtons />
+		<DisplaySpouseInformation />
+		</div>
 	}
-	{(false) &&
 	<Drawer 
 		anchor="right"
 		variant="temporary"
@@ -1415,7 +1430,7 @@ export default function Member(props) {
 	}
 	</Box>
 	</Drawer>
-	}
+	{/*</Container>*/}
   </div>
   );    
 }

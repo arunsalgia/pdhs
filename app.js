@@ -16,6 +16,12 @@ fs = require('fs');
 axios = require('axios');
 pin = require('pincode');
 
+// mongoose settings
+mongoose.set('useNewUrlParser', true);
+mongoose.set('useFindAndModify', false);
+mongoose.set('useCreateIndex', true);
+
+
 //multer = require('multer');
 readXlsxFile = require('read-excel-file');
 
@@ -68,35 +74,11 @@ usersRouter = require('./routes/user');
 memberRouter = require('./routes/member');
 hodRouter = require('./routes/hod');
 importRouter = require('./routes/import');
+humadRouter = require('./routes/humad');
+pjymRouter = require('./routes/pjym');
+gotraRouter = require('./routes/gotra');
+adminRouter = require('./routes/admin');
 
-
-/*
-//medicineRouter = require('./routes/medicine');
-//patientRouter = require('./routes/patient');
-//visitRouter = require('./routes/visit');
-//holidayRouter = require('./routes/holiday');
-//appointmentRouter = require('./routes/appointment');
-//infoRouter = require('./routes/info');
-//quoteRouter = require('./routes/quote');
-//customerRouter = require('./routes/customer');
-//imageRouter = require('./routes/image');
-//walletRouter = require('./routes/wallet');
-//doctorRouter = require('./routes/doctor');
-noteRouter = require('./routes/note');
-remarkRouter = require('./routes/remark');
-diagnosisRouter = require('./routes/diagnosis');
-symptomRouter = require('./routes/symptom');
-investigationRouter = require('./routes/investigation');
-treattypeRouter = require('./routes/treattype');
-dentalTreatmentRouter = require('./routes/dentaltreatment');
-profChargeRouter = require('./routes/profcharge');
-docxRouter = require('./routes/docx');
-addOnRouter = require('./routes/addon');
-doctorTypeRouter = require('./routes/doctortype')
-
-razorRouter = require('./routes/razor');
-
-*/
 
 app.set('view engine', 'html');
 //app.use(logger('dev'));
@@ -128,290 +110,20 @@ app.use('/user', usersRouter);
 app.use('/member', memberRouter);
 app.use('/hod', hodRouter);
 app.use('/import', importRouter);
-
-/*
-app.use('/medicine', medicineRouter);
-app.use('/patient', patientRouter);
-app.use('/visit', visitRouter);
-app.use('/holiday', holidayRouter);
-app.use('/appointment', appointmentRouter);
-app.use('/info', infoRouter);
-app.use('/quote', quoteRouter);
-app.use('/customer', customerRouter);
-app.use('/image', imageRouter);
-app.use('/wallet', walletRouter);
-app.use('/doctor', doctorRouter); 
-app.use('/razor', razorRouter); 
-app.use('/note', noteRouter);
-app.use('/remark', remarkRouter);
-app.use('/diagnosis', diagnosisRouter);
-app.use('/symptom', symptomRouter);
-app.use('/investigation', investigationRouter);
-app.use('/treattype', treattypeRouter);
-app.use('/dentaltreatment', dentalTreatmentRouter);
-app.use('/profcharge', profChargeRouter);
-app.use('/docx', docxRouter);
-app.use('/addon', addOnRouter);
-app.use('/doctortype', doctorTypeRouter);
-*/
-
-
-/* 
-	Old schema
-MedicineSchema = mongoose.Schema({
-	id: String,
-	name: String,
-	enabled: Boolean,
-	cid: String,
-});
-
-NoteSchema = mongoose.Schema({
-	id: String,
-	name: String,
-	enabled: Boolean,
-	cid: String,
-});
-
-RemarkSchema = mongoose.Schema({
-	id: String,
-	name: String,
-	enabled: Boolean,
-	cid: String,
-});
-
-DiagnosisSchema = mongoose.Schema({
-	id: String,
-	name: String,
-	enabled: Boolean,
-	cid: String,
-});
-
-SymptomSchema = mongoose.Schema({
-	id: String,
-	name: String,
-	enabled: Boolean,
-	cid: String,
-});
-
-
-MasterSettingsSchema = mongoose.Schema ({
-  msId: Number,
-  msKey: String,
-  msValue: String
-  //trialExpiry: String,
-})
-
-
-TreatTypeSchema = mongoose.Schema({
-	id: String,
-	name: String,
-	enabled: Boolean,
-	cid: String,
-});
-
-PatientSchema = mongoose.Schema({
-  pid: Number,
-	pidStr: String,
-  name: String,
-  displayName: String,
-  email: String,
-  mobile: String,
-	gender: String,
-	age: Number,
-	dob: Date,
-	enabled: Boolean,
-	cid: String,
-});
-
-VisitSchema = mongoose.Schema({
-  pid: Number,
-	displayName: String,
-	visitNumber: Number,
-	visitDate: Date,
-	medicines: [{name: String, dose1: Number, dose2: Number, dose3: Number, time: Number, unit: String}],
-	userNotes: [{name: String}],
-	remarks: [{name: String}],
-	//info: [{name: String}],
-	enabled: Boolean,
-	//appointment: String,	// store appointment _id. If unscheduled visit then it is blank
-	nextVisitTime: Number,
-	nextVisitUnit: String,
-	cid: String,
-});
-
-
-InvestigationSchema = mongoose.Schema({
-  pid: Number,
-	investigationNumber: Number,
-	investigationDate: Date,
-	symptom: [{name: String}],
-	diagnosis: [{name: String}],
-	enabled: Boolean,
-	cid: String,
-});
-
-
-DentalTreatmentSchema = mongoose.Schema({
-	cid: String,
-  pid: Number,
-	treatmentNumber: Number,
-	treatmentDate: Date,
-	treatment: [{name: String, amount: Number, toothArray: [Number] }],
-	enabled: Boolean,
-});
-
-NextVisitSchema = mongoose.Schema({
-  pid: Number,
-	nextVisitDate: Date,
-	cid: String,
-	enabled: Boolean,
-});
-
-ProfessionalChargesSchema = mongoose.Schema({
-	cid: String,
-  pid: Number,
-	tid: Number,
-	treatment: String,			// id of treatment record will be stored
-	description: String,
-	treatmentDetails: [{name: String, amount: Number}],
-	date: Date,
-	amount: Number,
-	paymentMode: String,
-	enabled: Boolean,
-});
-
-HolidaySchema = mongoose.Schema({
-  date: Number,
-	month: Number,
-	year: Number,
-	holidayDate: Date,
-	desc: String,
-	cid: String,
-});
-
-AppointmentSchema = mongoose.Schema({
-	//data: {},
-	year: Number,
-	month: Number,
-	date: Number,
-	hour: Number,
-	minute: Number,
-	order: Number,
-	pid: Number,
-	displayName: String,
-	apptTime: Date,
-	visit: String,	// be be visit Id. Else it will be pending cancelled.
-	cid: String,
-});
-
-// 1 info record per person
-// info field will have multiple entry.
-// will take entry from InfoDb schema
-InfoSchema = mongoose.Schema({
-	pid: Number,
-	info: [{name: String}],
-	enabled: Boolean,
-	cid: String,
-});
-
-InfoDbSchema = mongoose.Schema({
-	id: String,
-	name: String,
-	enabled: Boolean,
-	cid: String,
-});
-
-QuoteSchema = mongoose.Schema({
-	sequence: Number,
-	qid: String,
-	author: String,
-	category: String,
-	quote: String,
-});
-
-CustomerSchema = mongoose.Schema({
-	customerNumber: Number,
-	// Doctors details
-	name: String,
-	type: String,
-	email: String,
-	mobile: String,
-	// Clinic details
-	doctorName: String,
-	clinicName: String,
-	addr1: String,
-	addr2: String,
-	addr3: String,
-	location: String,
-	pinCode: String,
-	workingHours: [Number], // clinic weekly working slots (15 minute slots
-	
-	// 
-	commission: Number,			// commission for each referral recharge
-	referenceCid: String,		// the reference of doctor who made this customer join
-
-	welcomeMessage: String,
-	plan: String,
-	fee: Number,
-	expiryDate: Date,
-	enabled:Boolean,
-});
-
-
-ImageSchema = mongoose.Schema({
-	cid: 		String,
-	pid:		Number,
-	displayName: String,
-	title: 	String,
-	name:		String,
-	desc: 	String,
-	type:		String,
-	date:		Date,
-	image: 	{ data: Buffer, contentType: String }
-});
-
-WalletSchema = mongoose.Schema({
-  cid: String,
-  isWallet: Boolean,
-  transNumber: Number,
-  transDate: Date,
-  transType: String,
-  transSubType: String,
-  transLink: Number,
-  amount: Number,
-  transStatus: Boolean,
-})
-
-PaymentSchema = mongoose.Schema({
-  cid: String,
-  email: String,
-  amount: Number,
-  status: String,
-  requestId: String,
-  requestTime: Date,
-  paymentId: String,
-  paymentTime: Date,
-  fee: Number,
-});
-
-DoctorTypeSchema = mongoose.Schema({
-	dtin: Number,
-	name: String,
-	enabled: Boolean
-});
-
-AddOnSchema = mongoose.Schema({
-	aid: Number,
-	name: String,
-	// Which doctor type can use this add on
-	// 0xFFFFFFFF indicate all types of doctors
-	doctorType: Number,			
-	enabled: Boolean
-});
-
-	*/
+app.use('/humad', humadRouter);
+app.use('/pjym', pjymRouter);
+app.use('/gotra', gotraRouter);
+app.use('/pdhsadm', adminRouter);
 
 //Schema
+
+PasswordSchema = mongoose.Schema({
+	mobile: Number,
+	captcha: String
+}, {timestamps: true});
+PasswordSchema.index({createdAt: 1},{expireAfterSeconds: 300});
+PasswordSchema.index({mobile: 1});
+
 
 UserSchema = mongoose.Schema({
   uid: Number,
@@ -428,15 +140,32 @@ UserSchema = mongoose.Schema({
 //--- Medicine structure
 
 
+adminSchema = mongoose.Schema({
+	//id: Number,
+	//hid: Number,
+	mid: Number,
+	superAdmin: Boolean,
+	humadAdmin: Boolean,
+	pjymAdmin: Boolean,
+	prwsAdmin: Boolean,			//Welfare samiti
+	pmmAdmin: Boolean,
+	superduper: Boolean			// Atul & Arun are super duper. They cannot be deleted
+});
 
-
-
+GotraSchema = mongoose.Schema({
+	id: String,
+	name: String,
+	enabled: Boolean,
+});
 
 HodSchema = mongoose.Schema({
 	hid: Number,
-	mid: Number,
+	mid: Number,		// not required. Order 0 (zero) in Member list are HOD 
 	gotra: String,
+	caste: String,
+	subCaste: String,
 	village: String,
+	resAddr: String,
 	resAddr1: String,
 	resAddr2: String,
 	resAddr3: String,
@@ -446,16 +175,49 @@ HodSchema = mongoose.Schema({
 	suburb: String,
 	city: String,
 	pinCode: Number,
+	division: String,
 	district: String,
 	state: String,
 	resPhone1: String,
 	resPhone2: String
+});
+HodSchema.index({hid: 1});
+
+
+HodApplSchema = mongoose.Schema({
+	applicationNumber: Number,	
+	applicationDate: Date,
+	applicationType: String,
+	applicationOwner: String,
+	applicationStatus: String,
+	newHod: Number,
+	newGotra: String,
+	newCaste: String,
+	newSubCaste: String,
+	hid: Number		// 0  for new directory application
+});
+
+MemberApplSchema = mongoose.Schema({
+	applicationNumber: Number,	
+	applicationDate: Date,
+	applicationType: String,
+	applicationOwner: String,
+	applicationStatus: String,
+	newHod: Number,
+	newGotra: String,
+	newCaste: String,
+	newSubCaste: String,
+	hid: Number,					// 0  for new directory application
+	newhumadMid: [Number],
+	
 });
 
 MemberSchema = mongoose.Schema({
 	hid: Number,
 	order: Number,
 	mid: Number,
+	spouseMid: Number,
+	dateOfMarriage: Date,
 	title: String,
 	lastName: String,
 	firstName: String,
@@ -474,48 +236,61 @@ MemberSchema = mongoose.Schema({
 	mobile: String,
 	email: String,
 	officeName: String,
-	officeAddr1: String,
-	officeAddr2: String,
+	officeAddr: String,
 	officePhone: String,
 	mobile1: String,
 	email1: String,
 	ceased: Boolean,
 	ceasedDate: Date,
+	pjymMember: Boolean,
+	humadMember: Boolean,
+	prwsMember: Boolean,
+	pmmMember: Boolean
 })
+MemberSchema.index({mid: 1});
 
-/*
-M_Medicine = mongoose.model('Medicine', MedicineSchema);
-M_Note = mongoose.model('Note', NoteSchema);
-M_Remark = mongoose.model('Remark', RemarkSchema);
-M_MasterSetting = mongoose.model("MasterSetting", MasterSettingsSchema)
-M_Patient = mongoose.model('Patient', PatientSchema);
-M_Visit = mongoose.model('Visit', VisitSchema);
-M_Holiday = mongoose.model('Holiday', HolidaySchema);
-M_Appointment = mongoose.model('Appointment', AppointmentSchema);
-M_Info = mongoose.model('Info', InfoSchema);
-M_Quote = mongoose.model('Quote', QuoteSchema);
-M_Customer = mongoose.model('Customer', CustomerSchema);
-M_NextVisit = mongoose.model('NextVisit', NextVisitSchema);
-M_Image = mongoose.model('image', ImageSchema);
-M_Wallet = mongoose.model('wallet', WalletSchema);
-M_Diagnosis = mongoose.model('diagnosis', DiagnosisSchema);
-M_Symptom = mongoose.model('symptoms', SymptomSchema);
-M_Treattype = mongoose.model('treattype', TreatTypeSchema);
-M_DentalTreatment = mongoose.model('dentaltreatment', DentalTreatmentSchema);
-M_ProfCharge = mongoose.model('profcharge', ProfessionalChargesSchema);
-M_Investigation = mongoose.model('investigations', InvestigationSchema);
-M_Payment = mongoose.model('payment', PaymentSchema);
-M_AddOn = mongoose.model('addon', AddOnSchema);
-M_DoctorType = mongoose.model('doctortype', DoctorTypeSchema);
+PjymSchema = mongoose.Schema({
+	hid: Number,
+	mid: Number,
+	membershipNumber: String,
+	membershipDate: Date,
+	membershipReceipt: String,
+	upgradeIndex: Number,
+	active: Boolean
+});
+PjymSchema.index({mid: 1});
 
-*/
+HumadSchema = mongoose.Schema({
+	hid: Number,
+	mid: Number,
+	membershipNumber: String,
+	membershipDate: Date,
+	membershipReceipt: String,
+	remarks: String,
+	upgradeIndex: Number,
+	active: Boolean
+});
+HumadSchema.index({mid: 1});
+
+PinCodeSchema = mongoose.Schema({
+	pinCode: Number,
+	district: String,
+	state: String,
+	division: String,
+	found: Boolean
+});
 
 
 // models
 User = mongoose.model("user", UserSchema);
-
+M_Admin = mongoose.model('admin', adminSchema);
 M_Hod = mongoose.model('hod', HodSchema);
 M_Member = mongoose.model('member', MemberSchema);
+M_Humad = mongoose.model('humad', HumadSchema);
+M_Pjym = mongoose.model('pjym', PjymSchema);
+M_Gotra = mongoose.model('gotra', GotraSchema);
+M_Password = mongoose.model('password', PasswordSchema);
+M_PinCode = mongoose.model('pincode', PinCodeSchema);
 
 router = express.Router();
 
@@ -537,7 +312,7 @@ SENDSOCKET = 2;     // send data on socket
 DBERROR = 990;
 DBFETCHERR = 991;
 CRICFETCHERR = 992;
-ERR_NODB = "No connection to CricDream database";
+ERR_NODB = "No connection to PDHS database";
 
 allUSER = 99999999;
 serverTimer = 0;
@@ -675,6 +450,8 @@ MINUTESTR = [
 "40", "41", "42", "43", "44", "45", "46", "47", "48", "49", 
 "50", "51", "52", "53", "54", "55", "56", "57", "58", "59"
 ];
+
+MUMBAIREGION = [{city: /^mum/i }, {city: /^than/i }, {city: /^bhayan/i }, {city: /^virar/i }, {city: /^palgh/i } ];
 
 // module.exports = app;
 ALLDOCTORS = 0xFFFFFFFF;

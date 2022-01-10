@@ -2,10 +2,11 @@ import React, { useState, useContext, useEffect } from 'react';
 import {  CssBaseline } from '@material-ui/core';
 import { ValidatorForm, TextValidator} from 'react-material-ui-form-validator';
 import Divider from '@material-ui/core/Divider';
-import Avatar from '@material-ui/core/Avatar';
+//import Avatar from '@material-ui/core/Avatar';
 import lodashCloneDeep from 'lodash/cloneDeep';
 import lodashSortBy from "lodash/sortBy";
 import lodashMap from "lodash/map";
+//import IconButton from '@material-ui/core/IconButton';
 
 import VsButton from "CustomComponents/VsButton";
 import VsCancel from "CustomComponents/VsCancel";
@@ -17,10 +18,8 @@ import VsCheckBox from "CustomComponents/VsCheckBox";
 //import VsList from "CustomComponents/VsList";
 
 import MemberGeneral from "views/Member/MemberGeneral"
-import MemberPersonal from "views/Member/MemberPersonal"
-import MemberOffice from "views/Member/MemberOffice"
-import MemberSpouse from "views/Member/MemberSpouse"
 
+//import { useLoading, Audio } from '@agney/react-loading';
 import axios from "axios";
 import Drawer from '@material-ui/core/Drawer';
 import { useAlert } from 'react-alert'
@@ -37,9 +36,10 @@ import moment from "moment";
 import globalStyles from "assets/globalStyles";
 //import modalStyles from "assets/modalStyles";
 
+//icons
+import MoveUp   from '@material-ui/icons/ArrowUpwardRounded';
+import MoveDown from '@material-ui/icons/ArrowDownwardRounded';
 
-
-//const BlankMemberData = {firstName: "", middleName: "", lastName: ""};
 
 import {
 	BlankArea,
@@ -72,15 +72,17 @@ import {  } from 'views/functions';
 //import { updateCbItem } from 'typescript';
 
 var loginHid, loginMid;
-var adminData = {superAdmin: false, humadAdmin: false, pjymAdmin: false, prwsAdmin: false} ;
-export default function Member(props) {
+var adminData ={superAdmin: false, humadAdmin: false, pjymAdmin: false, prwsAdmin: false} ;
+export default function MemberPersonal(props) {
+  
+  //const classes = useStyles();
 	const gClasses = globalStyles();
 	const alert = useAlert();
 
-	const [memberArray, setMemberArray] = useState([])
+	const [memberArray, setMemberArray] = useState(JSON.parse(sessionStorage.getItem("members")))
 	//const [currentMember, setCurrentMember] = useState("");
 	const [currentMemberData, setCurrentMemberData] = useState({});
-	const [currentHod, setCurrentHod] = useState({});
+	const [currentHod, setCurrentHod] = useState(JSON.parse(sessionStorage.getItem("hod")));
 	const [gotraArray, setGotraArray] = useState([]);
 	const [gotraFilterArray, setGotraFilterArray] = useState([]);
 	//const [ceasedArray, setCeasedArray] = useState([]);
@@ -124,148 +126,20 @@ export default function Member(props) {
 	const [emurAddr12, setEmurAddr12] = useState("");
 	const [emurAddr13, setEmurAddr13] = useState("");
 
-	const [registerStatus, setRegisterStatus] = useState(0);
 
-	
+	const [registerStatus, setRegisterStatus] = useState(0);
 
 	
   useEffect(() => {	
 		const getDetails = async () => {	
-			await getHod(props.member.hid);
-			await getHodMembers(props.member.hid);
-			await setCurrentMemberData(props.member)
-			//setSelection("General");
-			getGotraList();
 		}
 		//setCurrentMember(getMemberName(props.member));
 		loginHid = Number(sessionStorage.getItem("hid"));
 		loginMid = Number(sessionStorage.getItem("mid"));
 		adminData = JSON.parse(sessionStorage.getItem("adminRec"));
-		//console.log(adminData);
 		getDetails();
 		
   }, []);
-
-
-	async function getHod(hid) {
-		try {
-			let myUrl = `${process.env.REACT_APP_AXIOS_BASEPATH}/hod/get/${hid}`
-			let resp = await axios.get(myUrl);
-			setCurrentHod(resp.data);
-			sessionStorage.setItem("hod", JSON.stringify(resp.data));
-		} catch (e) {
-			console.log(e);
-			alert.error(`Error fetching HOD details of ${hid}`);
-			setCurrentHod({});
-		}	
-	}
-
-	async function getHodMembers(hid) {
-		//console.log("Hi");
-		try {
-			let myUrl = `${process.env.REACT_APP_AXIOS_BASEPATH}/member/hod/${hid}`
-			let resp = await axios.get(myUrl);
-			//let tmp = resp.data.find(x => (x.mid % 100) === 1);
-			//setCurrentMemberData(tmp);
-			setMemberArray(resp.data);
-			//setCurrentMember()
-		} catch (e) {
-			console.log(e);
-			alert.error(`Error fetching Member details of HOD ${hid}`);
-			setMemberArray([]);
-		}	
-	}
-
-	async function getHodMemberNames() {
-		//console.log("Hi");
-		try {
-			let myUrl = `${process.env.REACT_APP_AXIOS_BASEPATH}/hod/hodnames`;
-			let resp = await axios.get(myUrl);
-			//let tmp = resp.data.find(x => (x.mid % 100) === 1);
-			//setCurrentMemberData(tmp);
-			setHodNamesArray(resp.data);
-			//setCurrentMember()
-		} catch (e) {
-			console.log(e);
-			alert.error(`Error fetching  HOD names`);
-			setHodNamesArray([]);
-		}	
-	}
-
-	async function getGotraList() {
-		//console.log("Hi");
-		try {
-			let myUrl = `${process.env.REACT_APP_AXIOS_BASEPATH}/gotra/list`
-			let resp = await axios.get(myUrl);
-			setGotraArray(resp.data);
-			//setCurrentMember()
-		} catch (e) {
-			console.log(e);
-			alert.error(`Error fetching Gotra List`);
-			setGotraArray([]);
-		}	
-	}
-
-		
-
-	function DisplayFunctionItem(props) {
-		let itemName = props.item;
-		return (
-		<Grid key={"BUT"+itemName} item xs={4} sm={4} md={2} lg={2} >	
-		<Typography onClick={() => setSelection(itemName)}>
-			<span 
-				className={(itemName === currentSelection) ? gClasses.functionSelected : gClasses.functionUnselected}>
-			{itemName}
-			</span>
-		</Typography>
-		</Grid>
-		)}
-	
-	async function setSelection(item) {
-		setRadioRecord(0);
-		sessionStorage.setItem("hod", JSON.stringify(currentHod));
-		sessionStorage.setItem("members", JSON.stringify(memberArray));
-		setCurrentSelection(item);
-		return;
-		
-		if (item === "Spouse") {
-
-			// create groom array
-			let tmp = memberArray.filter(x => x.gender === "Male" && x.emsStatus === "Married");
-			setGroomArray(lodashMap(tmp, 'mid'));
-			console.log("Males", tmp);
-			
-			// create marriage date
-			setDomArray(lodashMap(tmp, 'dateOfMarriage'));
-
-			// create bride array
-			let tmp1 = [];
-			for(let i=0; i<tmp.length; ++i) {
-				//console.log(tmp[i]);
-				tmp1.push(tmp[i].spouseMid);
-			}
-			setBrideArray(tmp1);
-			console.log(tmp1);
-			
-			setCurrentSelection(item);
-		} else {
-			setCurrentSelection(item);
-		}
-	}
-	
-	
-	function DisplayFunctionHeader() {
-	return (
-	<Box  className={gClasses.boxStyle} borderColor="black" borderRadius={7} border={1} >
-	<Grid className={gClasses.noPadding} key="AllPatients" container align="center">
-		<DisplayFunctionItem item="General" />
-		<DisplayFunctionItem item="Personal" />
-		<DisplayFunctionItem item="Office" />
-		<DisplayFunctionItem item="Spouse" />
-	</Grid>	
-	</Box>
-	)}
-
 
 	function DisplayRegisterStatus() {
     // console.log(`Status is ${registerStatus}`);
@@ -299,8 +173,6 @@ export default function Member(props) {
     )
   }
 
-
-
 	function DisplaySingleLine(props) {
 	return(
 		<Grid className={gClasses.noPadding} key={props.msg1+props.msg2} container align="center">
@@ -313,96 +185,6 @@ export default function Member(props) {
 		</Grid>
 
 	)} 
-
-
-	function editgeneralDetials() {
-		//alert.info("TO be implemented");
-		setEmurGotra(currentHod.gotra);
-/*		
-		if (adminData.superAdmin)
-			setGotraFilterArray(gotraArray);
-		else
-			setGotraFilterArray([{name: currentHod.gotra}])
-*/
-		setGotraFilterArray([{name: currentHod.gotra}])
-
-		setEmurVillage(currentHod.village);
-
-		setEmurAddr1(currentHod.resAddr1);
-		setEmurAddr2(currentHod.resAddr2);
-		setEmurAddr3(currentHod.resAddr3);
-		setEmurAddr4(currentHod.resAddr4);
-		setEmurAddr5(currentHod.resAddr5);
-		setEmurAddr6(currentHod.suburb);
-		setEmurAddr7(currentHod.city);
-
-		setEmurPincCode(currentHod.pinCode);
-
-		setEmurResPhone1(currentHod.resPhone1);
-		setEmurResPhone2(currentHod.resPhone2);
-
-		setIsDrawerOpened("EDITGENERAL");
-	}
-
-	async function handleVerifyPincode() {
-		try {
-			let myUrl = `${process.env.REACT_APP_AXIOS_BASEPATH}/hod/pincode/${emurPinCode}`;
-			let resp = await axios.get(myUrl);
-			//console.log(resp.data);
-			setEmurPinResp(resp.data);
-			setIsDrawerOpened("");
-			setRegisterStatus(0);
-			setIsDrawerOpened("CONFIRMGENERAL")
-		} catch (e) {
-			console.log(e);
-			setRegisterStatus(1001);
-		}		
-	}
-
-	async function handleEditGeneral() {
-		if (isDrawerOpened === "EDITGENERAL") return handleVerifyPincode();
-
-		// pin has been verified. Now it is confirm
-		setRegisterStatus(0);
-		//console.log(emurGotra);
-		let tmp = encodeURIComponent(JSON.stringify({
-			gotra: emurGotra,
-			village: currentHod.village,
-			addr1: emurAddr1,
-			addr2: emurAddr2,
-			addr3: emurAddr3,
-			addr4: emurAddr4,
-			addr5: emurAddr5,
-			suburb: emurAddr6,
-			city: emurAddr7,
-			pinCode: emurPinCode,
-			resPhone1: emurResPhone1,
-			resPhone2: emurResPhone2
-		}));
-		let err = 1002;
-		try {
-			let myUrl = `${process.env.REACT_APP_AXIOS_BASEPATH}/hod/updatedetails/${props.member.hid}/${tmp}`;
-			//console.log(myUrl)
-			let resp = await axios.get(myUrl);
-			setCurrentHod(resp.data);
-			setIsDrawerOpened("");
-			alert.success("Successfully updated HOD details");
-			err = 0;
-		} catch (e) {
-			console.log(e);
-			if (e.response) 
-			if (e.response.status === 602)
-				err = 1001;
-			//alert.error(`Error updating HOD details of ${props.member.hid}`);
-		}	
-		setRegisterStatus(err);
-	}
-
-	async function handleEditGotra() {
-		alert.info(isDrawerOpened);
-	}
-
-	
 
 	function handleMoveUpMember() {
 		//let fIndex = index - 1;
@@ -468,81 +250,6 @@ export default function Member(props) {
 
 	}
 
-	function editGotraDetails(action) {
-		console.log("1Action is "+action)
-		setEmurAddr1(currentHod.gotra);
-		setEmurAddr2(currentHod.caste);
-		setEmurAddr3(currentHod.subCaste);
-		setIsDrawerOpened(action);
-		console.log("2Action is "+action)
-	}
-
-
-
-	function DisplayGeneralInformation() {
-		//console.log(currentHod);
-		let edit = (currentHod.hid === loginHid);
-		let admin = adminData.superAdmin;
-	return (
-	<Box  className={gClasses.boxStyle} borderColor="black" borderRadius={7} border={1} >
-		{(admin) &&
-		<div align = "right">
-		<VsButton name="Edit Gotra, Caste, subcaste" onClick={() => editGotraDetails("EDITGOTRA")} />
-		<VsButton name="Edit General Details" onClick={editgeneralDetials} />
-		</div>
-		}
-		{(!admin && edit) &&
-		<div align = "right">
-		<VsButton name="Application for Gotra, Caste, subcaste" onClick={() => editGotraDetails("APPLYGOTRA")} />
-		<VsButton name="Edit General Details" onClick={editgeneralDetials} />
-		</div>
-		}
-		<DisplaySingleLine msg1="Gotra" msg2={currentHod.gotra} />
-		<BlankArea />
-		<DisplaySingleLine msg1="Caste" msg2={currentHod.caste} />
-		{(currentHod.caste === "Humad") &&
-			<div>
-			<BlankArea />
-			<DisplaySingleLine msg1="SubCaste" msg2={currentHod.subCaste} />
-			</div>
-		}
-		<BlankArea />
-		<DisplaySingleLine msg1="Village" msg2={currentHod.village} />
-		<BlankArea />
-		<DisplaySingleLine msg1="Res. Addr." msg2={currentHod.resAddr1} />
-		{(currentHod.resAddr2 !== "") &&
-		<DisplaySingleLine msg1="" msg2={currentHod.resAddr2} />
-		}
-		{(currentHod.resAddr3 !== "") &&
-		<DisplaySingleLine msg1="" msg2={currentHod.resAddr3} />
-		}
-		{(currentHod.resAddr4 !== "") &&
-		<DisplaySingleLine msg1="" msg2={currentHod.resAddr4} />
-		}
-		{(currentHod.resAddr5 !== "") &&
-		<DisplaySingleLine msg1="" msg2={currentHod.resAddr5} />
-		}
-		<BlankArea />
-		<DisplaySingleLine msg1="Suburb" msg2={currentHod.suburb} />
-		<BlankArea />
-		<DisplaySingleLine msg1="City" msg2={currentHod.city} />
-		<BlankArea />
-		<DisplaySingleLine msg1="Pin Code" msg2={currentHod.pinCode} />
-		<BlankArea />
-		<DisplaySingleLine msg1="Division" msg2={currentHod.division} />
-		<BlankArea />
-		<DisplaySingleLine msg1="District" msg2={currentHod.district} />
-		<BlankArea />
-		<DisplaySingleLine msg1="State" msg2={currentHod.state} />
-		<BlankArea />
-		<DisplaySingleLine msg1="Res. Phone1" msg2={currentHod.resPhone1} />
-		<BlankArea />
-		<DisplaySingleLine msg1="Res. Phone2" msg2={currentHod.resPhone2} />
-		<BlankArea />
-	</Box>	
-	)}
-	
-
 	function handleCeasedMember() {
 		setEmurDate1(moment());
 		setIsDrawerOpened("CEASED");
@@ -568,8 +275,6 @@ export default function Member(props) {
 		}	
 	}
 	
-	
-
 	function handleMemberAsHod() {
 		let m = memberArray[radioRecord];
 		vsDialog("Member Ceased", `Are you sure you want to declare ${m.lastName} ${m.firstName} ${m.middleName} as Hod?`,
@@ -616,9 +321,10 @@ export default function Member(props) {
 		setIsDrawerOpened("MERGEFAMILY");
 	}
 
-	
 	function DisplayPersonalButtons() {
-		//console.log("Curent", radioRecord);
+		console.log(memberArray);
+		console.log(adminData);
+		console.log(loginHid);
 		if (memberArray.length === 0) return null;
 		let edit = (memberArray[0].hid === loginHid);
 		if (adminData.superAdmin) edit = true;
@@ -639,8 +345,8 @@ export default function Member(props) {
 			<VsButton name="Add new Member" onClick={handlePersonalAdd} />
 			<VsButton name="Ceased" disabled={radioRecord === 0} onClick={handleCeasedMember} />
 			<VsButton name="Set Hod" disabled={radioRecord === 0} onClick={handleMemberAsHod} />
-			<VsButton name="Scroll Up" disabled={!showUp} onClick={handleMoveUpMember} />
-			<VsButton name="Scroll Down" disabled={!showDown} onClick={handleMoveDownMember} />
+			<VsButton name="Move Up" disabled={!showUp} onClick={handleMoveUpMember} />
+			<VsButton name="Move Down" disabled={!showDown} onClick={handleMoveDownMember} />
 			<VsButton name="Edit Details" onClick={handlePersonalEdit} />
 			</div>
 		}
@@ -653,37 +359,6 @@ export default function Member(props) {
 		}
 	</div>
 )}
-
-	function DisplayOfficeButtons() {
-		//console.log("Curent", radioRecord);
-		if (memberArray.length === 0) return null;
-		let edit = (memberArray[0].hid === loginHid);
-		if (adminData.superAdmin) edit = true;
-		if  (!edit) return null;
-	return(
-	<div align="right">
-		<VsButton name="Edit Details" onClick={handleOfficeEdit} />
-	</div>
-	)}
-
-	function handleOfficeEdit() {
-		let m = memberArray.find(x => x.order === radioRecord);
-		console.log(m);
-		setEmurAddr1(m.education);
-		setEmurAddr2(m.officeName)
-		setEmurAddr3(m.officePhone)
-		setEmurAddr4(getMemberName(m));
-		setIsDrawerOpened("EDITOFFICE");
-	}
-
-	function handleEditOfficeSubmit() {
-		let m = memberArray.find(x => x.order === radioRecord);
-		m.education = emurAddr1;
-		m.officeName = emurAddr2;
-		m.officePhone = emurAddr3;
-		setIsDrawerOpened("");
-		alert.success("Updated. Press 'Update office Details' once office details of all member are done");
-	}
 
 	function setSpouseEdit(action) {
 		setEmurGroomArray(groomArray);
@@ -710,7 +385,6 @@ export default function Member(props) {
 			return null;
 	}
 	
-
 	function DisplaySpouseInformation() {
 		let hands = getImageName("MARRIAGEHANDS");
 		return (
@@ -781,7 +455,7 @@ export default function Member(props) {
 	if (memberArray.length === 0) return null;
 	let edit = (memberArray[0].hid === loginHid);
 	if (adminData.superAdmin) edit = true;
-
+	console.log(radioRecord, lastItemIndex);
 	return (
 	<div>
 	{memberArray.map( (m, index) => {
@@ -798,10 +472,10 @@ export default function Member(props) {
 		<Grid key={"MEMGRID"+index} className={gClasses.noPadding} key={"SYM"+index} container justify="center" alignItems="center" >
 			<Grid align="left" item xs={8} sm={3} md={3} lg={3} >
 				{(index === 0) &&
-				<Typography className={gClasses.patientInfo2Brown}>{getMemberName(m)}</Typography>
+				<Typography className={gClasses.patientInfo2Brown}>{getMemberName(m)+" ("+m.mid+")"}</Typography>
 				}
 				{(index > 0) &&
-				<Typography className={gClasses.patientInfo2Blue}>{getMemberName(m)}</Typography>
+				<Typography className={gClasses.patientInfo2Blue}>{getMemberName(m)+" ("+m.mid+")"}</Typography>
 				}				
 			</Grid>
 			<Grid align="left" item xs={2} sm={6} md={1} lg={1} >
@@ -827,7 +501,7 @@ export default function Member(props) {
 				<Typography className={gClasses.patientInfo2}>{m.patientInfo2}{dispEmail(m.email)}</Typography>
 				<Typography className={gClasses.patientInfo2}>{m.patientInfo2}{dispEmail(m.email1)}</Typography>
 			</Grid>
-			<Grid item xs={1} sm={1} md={1} lg={1} >
+			<Grid align="right" item xs={1} sm={1} md={1} lg={1} >
 				{(edit) &&
 					<VsRadio checked={radioRecord === m.order} onClick={() => setRadioRecord(m.order)}  />
 				}
@@ -839,47 +513,6 @@ export default function Member(props) {
 	</div>	
 	)}
 
-	function DisplayOfficeInformation() {
-		let lastItemIndex =  memberArray.length-1;
-		//console.log(memberArray);
-		if (memberArray.length === 0) return null;
-		let edit = (memberArray[0].hid === loginHid);
-		if (adminData.superAdmin) edit = true;
-		return (
-		<div>
-		{memberArray.map( (m, index) => {
-			return (
-			<Box  key={"MEMBOX"+index} className={gClasses.boxStyle} borderColor="black" borderRadius={30} border={1} >
-			<Grid key={"MEMGRID"+index} className={gClasses.noPadding} key={"SYM"+index} container justify="center" alignItems="center" >
-				<Grid align="left" item xs={8} sm={2} md={3} lg={3} >
-					{(index === 0) &&
-					<Typography className={gClasses.patientInfo2Brown}>{getMemberName(m)}</Typography>
-					}
-					{(index > 0) &&
-					<Typography className={gClasses.patientInfo2Blue}>{getMemberName(m)}</Typography>
-					}				
-				</Grid>
-				<Grid align="left" item xs={2} sm={6} md={2} lg={2} >
-					<Typography className={gClasses.patientInfo2}>{m.education}</Typography>
-				</Grid>
-				<Grid align="left" item xs={12} sm={12} md={5} lg={5} >
-					<Typography className={gClasses.patientInfo2}>{m.officeName}</Typography>
-				</Grid>
-				<Grid align="left" item xs={4} sm={6} md={1} lg={1} >
-					<Typography className={gClasses.patientInfo2}>{m.officePhone}</Typography>
-				</Grid>
-				<Grid item xs={12} sm={12} md={1} lg={1} >
-					{(edit) &&
-					<VsRadio checked={radioRecord === m.order} onClick={() => setRadioRecord(m.order)}  />
-					}
-				</Grid>
-			</Grid>
-			</Box>
-			)}
-		)}	
-		</div>	
-	)}
-	
 	function handleDate1(d) {
 		setEmurDate1(d);
 	}
@@ -941,27 +574,11 @@ export default function Member(props) {
 
 
 
-	
+
 	return (
 	<div className={gClasses.webPage} align="center" key="main">
-	{/*<Container component="main" maxWidth="lg">*/}
-	<CssBaseline />
-	<DisplayMemberHeader member={currentMemberData} />
-	<Divider className={gClasses.divider} />
-	<DisplayFunctionHeader />
-	{(currentSelection === "General") &&
-		<MemberGeneral hod={currentHod} />
-	}
-	{(currentSelection === "Personal") &&
-		<MemberPersonal />
-	}
-	{(currentSelection === "Office") &&
-		<MemberOffice />
-	}
-	{(currentSelection === "Spouse") &&
-		<MemberSpouse />
-	}
-	{(false) &&
+	<DisplayPersonalButtons />
+	<DisplayPersonalInformation />
 	<Drawer 
 		anchor="right"
 		variant="temporary"
@@ -985,50 +602,6 @@ export default function Member(props) {
 			/>
 			<BlankArea />
 			<VsButton name="Update" type="submit" />
-		</ValidatorForm>
-	}	
-	{((isDrawerOpened === "EDITGOTRA") || (isDrawerOpened === "APPLYGOTRA")) &&
-		<ValidatorForm align="left" className={gClasses.form} onSubmit={handleEditGotra}>
-		<Typography className={gClasses.title}>{((isDrawerOpened === "EDITGOTRA") ? "Edit" : "Application to change") + " Gotra, Caste, Sub Caste of "+getMemberName(memberArray[0])}</Typography>
-		<BlankArea />
-		<Grid className={gClasses.noPadding} key="ADDEDITPERS" container alignItems="center" align="center">
-		<Grid align="left"  item xs={6} sm={6} md={2} lg={2} >
-				<Typography className={gClasses.title}>Gotra</Typography>
-			</Grid>
-			<Grid align="left"  item xs={6} sm={6} md={10} lg={10} >
-				<VsRadioGroup 
-					value={emurAddr1} onChange={(event) => setEmurAddr1(event.target.value)}
-					radioField="name" radioList={gotraArray}
-				/>
-			</Grid>	
-			<Grid align="left"  item xs={6} sm={6} md={2} lg={2} >
-				<Typography className={gClasses.title}>Caste</Typography>
-			</Grid>
-			<Grid align="left"  item xs={6} sm={6} md={10} lg={10} >
-				<VsRadioGroup 
-					value={emurAddr2} onChange={(event) => setEmurAddr2(event.target.value)}
-					radioList={CASTE}
-				/>
-			</Grid>	
-			</Grid>
-			{(emurAddr2 === "Humad") &&
-			<div>
-			<Grid className={gClasses.noPadding} key="SUBCASTE2" container alignItems="center" align="center">
-				<Grid align="left"  item xs={6} sm={6} md={2} lg={2} >
-				<Typography className={gClasses.title}>Sub Caste</Typography>
-				</Grid>
-				<Grid align="left"  item xs={6} sm={6} md={10} lg={10} >
-					<VsRadioGroup 
-						value={emurAddr3} onChange={(event) => setEmurAddr3(event.target.value)}
-						radioList={HUMADSUBCASTRE}
-					/>
-				</Grid>
-			</Grid>
-			</div>	
-			}
-		<DisplayRegisterStatus />
-		<BlankArea />
-		<VsButton align="center" name={(isDrawerOpened === "EDITGOTRA") ? "Update" : "Apply"} type="submit" />
 		</ValidatorForm>
 	}	
 	{((isDrawerOpened === "EDITSPOUSE") || (isDrawerOpened === "APPLYSPOUSE")) &&
@@ -1097,144 +670,6 @@ export default function Member(props) {
 		<VsButton align="center" name={(isDrawerOpened === "EDITSPOUSE") ? "Update" : "Apply"} 
 		onClick={handleEditSpouse} />
 		</div>
-	}	
-	{((isDrawerOpened === "EDITGENERAL") || (isDrawerOpened === "CONFIRMGENERAL")) &&
-		<ValidatorForm align="left" className={gClasses.form} onSubmit={handleEditGeneral}>
-		<Typography className={gClasses.title}>{"Edit family details of "+getMemberName(memberArray[0])}</Typography>
-		<BlankArea />
-		<Grid className={gClasses.noPadding} key="ADDEDITPERS" container alignItems="center" align="center">
-			<Grid align="left"  item xs={12} sm={12} md={6} lg={6} >
-				<TextValidator required fullWidth className={gClasses.vgSpacing}
-					label="Res. Addr1" type="text"
-					value={emurAddr1}
-					disabled={(isDrawerOpened === "CONFIRMGENERAL")}
-					onChange={(event) => { setEmurAddr1(event.target.value) }}			
-				/>
-			</Grid>
-			<Grid align="left"  item xs={12} sm={12} md={6} lg={6} >
-				<TextValidator  required fullWidth className={gClasses.vgSpacing}
-					label="Res. Addr2" type="text"
-					value={emurAddr2}
-					disabled={(isDrawerOpened === "CONFIRMGENERAL")}
-					onChange={(event) => { setEmurAddr2(event.target.value) }}			
-				/>
-			</Grid>
-			<Grid align="left"  item xs={12} sm={12} md={6} lg={6} >
-				<TextValidator fullWidth className={gClasses.vgSpacing}
-					label="Res. Addr3" type="text"
-					value={emurAddr3}
-					disabled={(isDrawerOpened === "CONFIRMGENERAL")}
-					onChange={(event) => { setEmurAddr3(event.target.value) }}			
-				/>
-			</Grid>
-			<Grid align="left"  item xs={12} sm={12} md={6} lg={6} >
-				<TextValidator  fullWidth className={gClasses.vgSpacing}
-					label="Res. Addr4" type="text"
-					value={emurAddr4}
-					disabled={(isDrawerOpened === "CONFIRMGENERAL")}
-					onChange={(event) => { setEmurAddr4(event.target.value) }}			
-				/>
-			</Grid>
-			<Grid align="left"  item xs={12} sm={12} md={6} lg={6} >
-				<TextValidator  fullWidth className={gClasses.vgSpacing}
-					label="Res. Addr5" type="text"
-					value={emurAddr5}
-					disabled={(isDrawerOpened === "CONFIRMGENERAL")}
-					onChange={(event) => { setEmurAddr5(event.target.value) }}			
-				/>
-			</Grid>
-			<Grid align="left"  item xs={12} sm={12} md={6} lg={6} >
-				<TextValidator  fullWidth className={gClasses.vgSpacing}
-					label="Suburb" type="text"
-					value={emurAddr6}
-					disabled={(isDrawerOpened === "CONFIRMGENERAL")}
-					onChange={(event) => { setEmurAddr6(event.target.value) }}			
-				/>
-			</Grid>
-			<Grid align="left"  item xs={12} sm={12} md={6} lg={6} >
-				<TextValidator  fullWidth className={gClasses.vgSpacing}
-					label="City" type="text"
-					value={emurAddr7}
-					disabled={(isDrawerOpened === "CONFIRMGENERAL")}
-					onChange={(event) => { setEmurAddr7(event.target.value) }}			
-				/>
-			</Grid>
-			<Grid align="left"  item xs={12} sm={12} md={6} lg={6} >
-				<TextValidator  required fullWidth className={gClasses.vgSpacing}
-					label="Pin Code" type="number"
-					value={emurPinCode}
-					disabled={(isDrawerOpened === "CONFIRMGENERAL")}
-					onChange={(event) => { setEmurPincCode(event.target.value) }}	
-					validators={['minNumber:350000', 'maxNumber:449999']}
-					errorMessages={['Invalid Pin code', 'Invalid Pin code']}			
-				/>
-			</Grid>
-			<Grid align="left"  item xs={12} sm={12} md={6} lg={6} >
-				<TextValidator  fullWidth className={gClasses.vgSpacing}
-					label="Res. Phone 1" type="number"
-					value={emurResPhone1}
-					disabled={(isDrawerOpened === "CONFIRMGENERAL")}
-					onChange={(event) => { setEmurResPhone1(event.target.value) }}			
-				/>
-			</Grid>
-			<Grid align="left"  item xs={12} sm={12} md={6} lg={6} >
-				<TextValidator  fullWidth className={gClasses.vgSpacing}
-					label="Res. Phone 2" type="number"
-					value={emurResPhone2}
-					disabled={(isDrawerOpened === "CONFIRMGENERAL")}
-					onChange={(event) => { setEmurResPhone2(event.target.value) }}			
-				/>
-			</Grid>
-			<Grid align="left"  item xs={12} sm={12} md={6} lg={6} >
-				<TextValidator required fullWidth className={gClasses.vgSpacing}
-					label="Village" type="text"
-					value={emurVillage}
-					disabled={(isDrawerOpened === "CONFIRMGENERAL")}
-					onChange={(event) => { setEmurVillage(event.target.value) }}			
-				/>
-			</Grid>
-		</Grid>
-		<DisplayRegisterStatus />
-		<BlankArea />
-		{(isDrawerOpened === "EDITGENERAL") &&
-			<VsButton align="center" name="Validate PinCode" type="submit" />
-		}
-		{(isDrawerOpened === "CONFIRMGENERAL") &&
-			<div>
-			<br />
-			<Typography className={gClasses.patientInfo2Blue} >
-			{"As per Pincode "+ emurPinCode + ", Division/District/State details are "+emurPinResp.Division+"/"+emurPinResp.District+"/"+emurPinResp.State+". Click Confirm if Pincode is correct."}
-			</Typography>
-			<div align="center">
-			<VsButton name="Confirm" type="submit" />
-			<VsButton name="Cancel" onClick={() => setIsDrawerOpened("EDITGENERAL")} />
-			</div>
-			</div>
-		}
-		</ValidatorForm>
-	}	
-	{(isDrawerOpened === "EDITOFFICE") &&
-		<ValidatorForm align="left" className={gClasses.form} onSubmit={handleEditOfficeSubmit}>
-		<Typography className={gClasses.title}>{"Edit office details of "+emurAddr4}</Typography>
-		<BlankArea />
-		<TextValidator fullWidth className={gClasses.vgSpacing}
-			label="Qualification" type="text"
-			value={emurAddr1}
-			onChange={(event) => { setEmurAddr1(event.target.value) }}			
-		/>
-		<TextValidator  fullWidth className={gClasses.vgSpacing}
-			label="Office Details" type="text"
-			value={emurAddr2}
-			onChange={(event) => { setEmurAddr2(event.target.value) }}			
-		/>
-		<TextValidator className={gClasses.vgSpacing}
-			label="Office Phone" type="text"
-			value={emurAddr3}
-			onChange={(event) => { setEmurAddr3(event.target.value) }}			
-		/>
-		<BlankArea />
-		<VsButton align="center" name="Update" type="submit" />
-		</ValidatorForm>
 	}	
 	{((isDrawerOpened === "ADDPERSONAL") || (isDrawerOpened === "EDITPERSONAL")) &&
 		<ValidatorForm align="left" className={gClasses.form} onSubmit={handleEditPersonalSubmit}>
@@ -1415,7 +850,6 @@ export default function Member(props) {
 	}
 	</Box>
 	</Drawer>
-	}
   </div>
   );    
 }

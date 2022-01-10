@@ -457,11 +457,9 @@ router.get('/temp', async function (req, res) {
 	let myData = await M_Member.find({});
 	for(let i=0; i<myData.length; ++i) {
 		let temp = myData[i].alias.trim();
-		if (temp !== "") {
-			temp = temp.replace("(", "");
-			temp = temp.replace("(", "");
-			myData[i].alias = capitalizeFirstLetter(temp);
-		}
+		temp = temp.replace("(", "");
+		temp = temp.replace("(", "");
+		myData[i].alias = capitalizeFirstLetter(temp);
 		await myData[i].save();
 	}
 	sendok(res, "Done");

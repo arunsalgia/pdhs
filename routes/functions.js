@@ -1,7 +1,7 @@
 const algorithm = 'aes-256-ctr';
 const akshusecretKey = process.env.akshusecretKey;
 const ankitsecretKey = process.env.ankitsecretKey;
-const iv = process.env.iv;           //crypto.randomBytes(16);
+const iv = process.env.iv;           
 
 
 
@@ -61,16 +61,16 @@ const getLoginName = (name) => {
   }
   
 const getDisplayName = (name) => {
-	console.log('xxx', name);
+	  //console.log('xxx', name);
     var xxx = name.split(" ");
 		for(let i=0; i<xxx.length; ++i) {
       let x = xxx[i].trim();
 			let a = x.substr(0,1).toUpperCase();
 			let b = x.substr(1, x.length).toLowerCase();
       xxx[i] = a + b;
-			console.log(a, b, a+b);
+			//console.log(a, b, a+b);
     };
-		console.log(xxx);
+		//console.log(xxx);
     return xxx.join(" ");
   }
 
@@ -369,6 +369,46 @@ async function setOldPendingAppointment(cid, pid, newStatus) {
 	}
 }
 
+
+function getMid(inp) {
+	let mid = Math.round(inp*100);
+  mid = Math.trunc(mid / 100) * FAMILYMF + (mid % 100);
+  return mid;
+}
+
+async function fetchPinDetails(pinCode) {
+  let newPinRec = await M_PinCode.findOne({pinCode: pinCode});
+	console.log(pinCode);
+	console.log(newPinRec);
+	if (!newPinRec) {
+		newPinRec = new M_PinCode();
+		newPinRec.pinCode = pinCode;
+		newPinRec.found = false;
+		newPinRec.district = "";
+		newPinRec.state = "";
+		newPinRec.division = "";
+		try {
+			let myUrl = `https://api.postalpincode.in/pincode/${pinCode}`; 
+			var tmp = await axios.get(myUrl);
+			if (tmp.data[0].Status === 'Success') {
+				newPinRec.district = tmp.data[0].PostOffice[0].District;
+				newPinRec.state = tmp.data[0].PostOffice[0].State;
+				newPinRec.division = tmp.data[0].PostOffice[0].Division;
+				newPinRec.found = true;
+				newPinRec.save();
+			}
+		} catch (e) {
+			console.log("Error fetching pin code");
+		}
+	}
+	return newPinRec;
+}
+
+function getMemberName(rec) {
+	let tmp = `${rec.lastName} ${rec.firstName} ${rec.middleName}`;
+	return tmp;
+}
+
 module.exports = {
 	ALPHABETSTR,
   getLoginName, getDisplayName,
@@ -393,6 +433,9 @@ module.exports = {
 	getNewPid, getCustomerNumber,
 	setOldPendingAppointment,
 	generateOrder, generateOrderByDate,
+  getMid,
+  fetchPinDetails,
+	getMemberName,
 }; 
 
 // mongodb+srv://pdhsamaj:YkEW2W4RBLyNsvo0@pdhs.drlqk.mongodb.net/test

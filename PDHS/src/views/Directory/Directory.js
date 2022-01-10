@@ -1,66 +1,32 @@
 import React, { useEffect, useState, useContext } from 'react';
-import TextField from '@material-ui/core/TextField';
-import { InputAdornment, makeStyles, Container, CssBaseline } from '@material-ui/core';
-
+//import TextField from '@material-ui/core/TextField';
+//import { InputAdornment, makeStyles, Container, CssBaseline } from '@material-ui/core';
+import { CssBaseline } from '@material-ui/core';
 import axios from "axios";
 import FormControlLabel from '@material-ui/core/FormControlLabel';
-import SwitchBtn from '@material-ui/core/Switch';
-import Modal from 'react-modal';
+import { ValidatorForm, TextValidator} from 'react-material-ui-form-validator';
 import Box from '@material-ui/core/Box';
 
 import VsButton from "CustomComponents/VsButton";
 import VsCancel from "CustomComponents/VsCancel";
 import VsTextSearch from "CustomComponents/VsTextSearch";
 
-import RadioGroup from '@material-ui/core/RadioGroup';
-import Radio from '@material-ui/core/Radio';
 import FormControl from '@material-ui/core/FormControl';
-import Drawer from '@material-ui/core/Drawer';
-import Switch from "@material-ui/core/Switch";
-//import  from '@material-ui/core/Container';
-//import  from '@material-ui/core/CssBaseline';
-import { ValidatorForm, TextValidator} from 'react-material-ui-form-validator';
-import Select from "@material-ui/core/Select";
-import MenuItem from '@material-ui/core/MenuItem';
-import Link from '@material-ui/core/Link';
-import Button from '@material-ui/core/Button';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableContainer from '@material-ui/core/TableContainer';
-import TableHead from '@material-ui/core/TableHead';
-import TablePagination from '@material-ui/core/TablePagination';
-import TableRow from '@material-ui/core/TableRow';
-import TableSortLabel from '@material-ui/core/TableSortLabel';
-// import FormControlLabel from '@material-ui/core/FormControlLabel';
-// import Radio from '@material-ui/core/Radio';
-import Card from "components/Card/Card.js";
-import CardBody from "components/Card/CardBody.js";
+
+
+
+import { useAlert } from 'react-alert';
 import Grid from "@material-ui/core/Grid";
 import Typography from '@material-ui/core/Typography';
-import Avatar from "@material-ui/core/Avatar"
-import { useHistory } from "react-router-dom";
-import { useAlert } from 'react-alert';
-import Divider from '@material-ui/core/Divider';
-import Datetime from "react-datetime";
-import "react-datetime/css/react-datetime.css";
-import moment from "moment";
+
 
 import Member from "views/Member/Member";
-// icons
-//import IconButton from '@material-ui/core/IconButton';
-//import CancelIcon from '@material-ui/icons/Cancel';
-//import VisibilityIcon from '@material-ui/icons/Visibility';
-//import EditIcon from '@material-ui/icons/Edit';
-//import SearchIcon from '@material-ui/icons/Search';
-//import LocalHospitalIcon from '@material-ui/icons/LocalHospital';
-//import EventNoteIcon from '@material-ui/icons/EventNote';
-//import NoteAddIcon from '@material-ui/icons/NoteAdd';
 
 
-import {
-WEEKSTR, MONTHSTR, SHORTMONTHSTR, DATESTR, MONTHNUMBERSTR,
-} from 'views/globals';
+
+//import {
+//WEEKSTR, MONTHSTR, SHORTMONTHSTR, DATESTR, MONTHNUMBERSTR,
+//} from 'views/globals';
 
 // import { UserContext } from "../../UserContext";
 import { isMobile, encrypt,
@@ -91,6 +57,8 @@ import {setTab} from "CustomComponents/CricDreamTabs.js"
 
 const drawerWidth=800;
 const AVATARHEIGHT=4;
+
+/*
 const useStyles = makeStyles((theme) => ({
 	dateTime: {
 		color: 'blue',
@@ -226,16 +194,16 @@ const useStyles = makeStyles((theme) => ({
     },
   }));
 
-
+*/
 
 var userCid;
 
 
-export default function Patient() {
+export default function Directory() {
 	//const history = useHistory();	
-  const classes = useStyles();
+  //const classes = useStyles();
 	const gClasses = globalStyles();
-	const alert = useAlert();
+	//const alert = useAlert();
 	//customerData = sessionStorage.getItem("customerData");
 
 	const [searchText, setSearchText] = useState("");
@@ -256,21 +224,21 @@ export default function Patient() {
 
 
 
-	const [isDrawerOpened, setIsDrawerOpened] = useState(false);
-	const [isAdd, setIsAdd] = useState(false);
-	const [radioValue, setRadioValue] = useState("Male");
+	//const [isDrawerOpened, setIsDrawerOpened] = useState(false);
+	//const [isAdd, setIsAdd] = useState(false);
+	//const [radioValue, setRadioValue] = useState("Male");
 	
-	const [patientRec, setPatientRec] = useState({});
+	//const [patientRec, setPatientRec] = useState({});
 	const [registerStatus, setRegisterStatus] = useState(0);
 	
-	const [oldPatientName, setOldPatientName] = useState("");
-	const	[patientName, setPatientName] = useState("");
-	const	[patientAge, setPatientAge] = useState(0);
-	const	[patientGender, setPatientGender] = useState("Male");
-	const	[patientEmail, setPatientEmail] = useState("");
-	const	[patientMobile, setPatientMobile] = useState(0);
-	const [emurDob, setEmurDob] = useState(new Date(2000, 1, 1));
-  const [page, setPage] = useState(0);
+	//const [oldPatientName, setOldPatientName] = useState("");
+	//const	[patientName, setPatientName] = useState("");
+	//const	[patientAge, setPatientAge] = useState(0);
+	///const	[patientGender, setPatientGender] = useState("Male");
+	//const	[patientEmail, setPatientEmail] = useState("");
+	//const	[patientMobile, setPatientMobile] = useState(0);
+	//const [emurDob, setEmurDob] = useState(new Date(2000, 1, 1));
+  //const [page, setPage] = useState(0);
 	
 	
   useEffect(() => {
@@ -305,114 +273,6 @@ export default function Patient() {
   }
 
 
-	
-	// handle confirmation of YES / No
-	
-	function handleAppointmentConfirm(rec) {
-		//sessionStorage.setItem("shareData", JSON.stringify(rec));
-		setTab(process.env.REACT_APP_APPT);
-	}
-	
-	function handleAdd() {
-		//console.log("handleAdd");
-		setPatientName("");
-		setPatientAge("");
-		setPatientGender("Male")
-		setRadioValue("Male");
-		setPatientEmail("");
-		setPatientMobile("");
-		setEmurDob(moment(new Date(2000, 1, 1)));
-		setRegisterStatus(0);
-		setIsAdd(true);
-		setIsDrawerOpened(true);
-	}
-	
-	function handleEdit(rec) {
-		console.log(rec);
-		setOldPatientName(rec.displayName);
-		setPatientName(rec.displayName);		
-		setPatientAge(dispOnlyAge(rec.age));
-		setPatientGender(rec.gender);
-		setRadioValue(rec.gender);
-		setPatientEmail(dispEmail(rec.email));
-		setPatientMobile(dispMobile(rec.mobile));
-		setEmurDob(moment(rec.dob));
-		setRegisterStatus(0);
-		setIsAdd(false);
-		setIsDrawerOpened(true);
-	}
-
-	async function handleCancel(rec) {
-			let myUrl = `${process.env.REACT_APP_AXIOS_BASEPATH}/patient/visitcount/${userCid}/${rec.pid}`;
-		try {
-			let resp = await axios.get(myUrl);
-			let msg = "";
-			if ((resp.data.pending > 0) && (resp.data.visit > 0)) {
-				msg = `${rec.displayName} has appointment and ${resp.data.visit} visit(s).`;
-			} else if (resp.data.pending > 0) {
-				msg = `${rec.displayName} has appointment.`;
-			} else if (resp.data.visit > 0) {
-				msg = `${rec.displayName} has ${resp.data.visit} visit(s).`;
-			}
-			msg += " Are you sure you want to delete?";
-			vsDialog("Delete patient", msg,
-				{label: "Yes", onClick: () => handleCancelConfirm(rec) },
-				{label: "No" }
-			);		
-		} catch (e) {
-			console.log(e);
-			alert.error("Error deleting patient record");
-		}		
-	}
-	
-	function handleCancelConfirm(rec) {
-		alert.error("Delete all info of "+rec.displayName);
-		//console.log(rec);
-	}
-
-
-	
-	async function handleAddEditSubmit() {
-		let myDate = emurDob.toDate();
-		let testAge = new Date().getFullYear() - myDate.getFullYear();
-		console.log(testAge, myDate);
-		if ((testAge >= 100) || (testAge <= 1)) return setRegisterStatus(1001);
-		let myMobile = (patientMobile !== "") ? patientMobile : 0;
-		let myEmail = (patientEmail !== "") ? patientEmail : "-";
-		myEmail = encrypt(myEmail);
-		let dobStr = myDate.getFullYear() + MONTHNUMBERSTR[myDate.getMonth()] + DATESTR[myDate.getDate()];
-		console.log(myEmail);
-		console.log("Addedit", patientName, dobStr, patientGender, myEmail, myMobile);
-		let resp;
-		let myUrl;
-		if (isAdd) {
-			try {
-				myUrl = `${process.env.REACT_APP_AXIOS_BASEPATH}/patient/addwithdob/${userCid}/${patientName}/${dobStr}/${patientGender}/${myEmail}/${myMobile}`;
-				resp = await axios.get(myUrl);
-			} catch (error)  {
-				console.log(error.response.status);
-				setRegisterStatus(error.response.status);
-				return
-			}
-		} else {
-			try {
-				myUrl = `${process.env.REACT_APP_AXIOS_BASEPATH}/patient/editwithdob/${userCid}/${oldPatientName}/${patientName}/${dobStr}/${patientGender}/${myEmail}/${myMobile}`;
-				resp = await axios.get(myUrl);
-			} catch (error)  {
-				console.log(error.response.status);
-				setRegisterStatus(error.response.status);
-				return;
-			}			
-		}
-		setIsDrawerOpened(false);
-
-		let ppp = await getAllPatients(userCid);
-		setMemberMasterArray(ppp);
-		setPatientFilter(ppp, searchText);
-		setIsDrawerOpened(false);
-		return; 
-	}
-	
 	function handleSelectMember(pat) {
 		setcurrentMemberData(pat);
 		setCurrentMember(pat.displayName);
@@ -479,17 +339,11 @@ export default function Patient() {
 		setMemberArray(tmpArray);
 	}
 	
-	function filterPatients(filterStr) {
-		setSearchText(filterStr);
-		setPatientFilter(memberMasterArray, filterStr);
-	}
 	
 	function handleBack() {
-		//setFirstName("");
-		//set
-		//setMemberArray(memberMasterArray);
 		setcurrentMemberData({});
 		setCurrentMember("");
+		setMemberArray([]);
 	}
 	
 	async function handleMemberSelect() {
@@ -513,13 +367,14 @@ export default function Patient() {
 	
   return (
   <div className={gClasses.webPage} align="center" key="main">
-		<Container component="main" maxWidth="lg">
+		{/*<Container component="main" maxWidth="lg">*/}
 		<CssBaseline />
 		{(currentMember === "") &&
 			<div>
 			<DisplayPageHeader headerName="Samaj Directory" groupName="" tournament=""/>
 			<BlankArea />
 			<Grid className={gClasses.vgSpacing} key="PatientFilter" container alignItems="center" >
+				<Grid key={"BLANK"} item xs={4} sm={2} md={2} lg={2} />
 				<Grid key={"LN"} item xs={12} sm={6} md={3} lg={3} >
 				<VsTextSearch label="Member's last name" value={lastName}
 					onChange={(event) => { setLastName(event.target.value);  }}
@@ -550,6 +405,7 @@ export default function Patient() {
 			<Member member={currentMemberData} />
 			</div> 
 		}
+		{(false) &&
 		<Drawer className={classes.drawer}
 			anchor="right"
 			variant="temporary"
@@ -564,13 +420,6 @@ export default function Patient() {
 				value={patientName} 
 				onChange={() => { setPatientName(event.target.value) }}
       />
-			{/*<TextValidator  fullWidth className={gClasses.vgSpacing}
-				id="newPatientAge" label="Age" type="number"
-				value={patientAge}
-				onChange={() => { setPatientAge(event.target.value) }}
-				validators={['minNumber:1', 'maxNumber:99']}
-        errorMessages={['Age to be above 1', 'Age to be less than 100']}				
-			/>*/}
 			<div align="left">
 			<Typography className={gClasses.vgSpacing}>Date of Birth</Typography>
 			</div>
@@ -612,7 +461,7 @@ export default function Patient() {
 			</ValidatorForm>    		
 			</Box>
 		</Drawer>
-		</ Container>
+		}
   </div>
   );    
 }

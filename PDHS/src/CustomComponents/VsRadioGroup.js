@@ -14,13 +14,13 @@ return (
 	{(_field) &&
 		props.radioList.map ( r =>
 		<FormControlLabel className={gClasses.filterRadio} value={r} 
-			control={<Radio color="primary"/>} label={r} />
+			control={<Radio color="primary"/>} label={r} key={r}  />
 		)
 	}
 	{(!_field) &&
 		props.radioList.map ( r =>
 		<FormControlLabel className={gClasses.filterRadio} value={r[props.radioField]} 
-			control={<Radio color="primary"/>} label={r[props.radioField]} />
+			control={<Radio color="primary"/>} label={r[props.radioField]} key={r[props.radioField]} />
 		)
 	}
 	</RadioGroup>
