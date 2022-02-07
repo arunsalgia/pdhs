@@ -1,32 +1,51 @@
 import React from 'react';
 import Typography from '@material-ui/core/Typography';
 import globalStyles from "assets/globalStyles";
-import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormControl from '@material-ui/core/FormControl';
+import InputLabel from '@material-ui/core/InputLabel';
 import Select from "@material-ui/core/Select";
 import MenuItem from '@material-ui/core/MenuItem';
 
 
 export default function VsCheckBox(props) {
 const gClasses = globalStyles();
-let _align = (props.align == null) ? 'center' : props.align;
+let _align = (props.align == null) ? 'left' : props.align;
 let _label = (props.label == null) ? "" : props.label;
 let _field = (props.field == null) ? "" : props.field;
+let _style = (props.style == null) ? {} : props.style;
+let _disabled = (props.style == null) ? false : props.disabled;
+//console.log("OPT", props.options);
 return (
 	<div align={_align} >
-	 <FormControlLabel labelPlacement="start"
-		control={
-		<Select labelId="demo-simple-select-label" id="demo-simple-select"
-    	value={props.value}
-			labelId="Gotra"
-   		onChange={props.onChange}
-		>
-		{
-		props.option.map(item => <MenuItem key={item.name} value={item.name}>{item.name}</MenuItem>)
+	<FormControl style={_style}>
+		<InputLabel id={_label}>{_label}</InputLabel>
+		{(_field !== "") &&
+			<Select
+				disabled={_disabled}
+				labelId={_label}
+				inputProps={props.inputProps}
+				value={props.value}
+				label={_label}
+				onChange={props.onChange}
+			>
+			{props.options.map(x => 
+			<MenuItem key={x[_field]} value={x[_field]}>{x[_field]}</MenuItem>
+			)}
+			</Select>
 		}
-    </Select>
-		} 
-		label={<Typography className={gClasses.blueSelectLabel}>{_label} </Typography>}
-		/>
+		{(_field === "") &&
+			<Select
+				labelId={_label}
+				inputProps={props.inputProps}
+				value={props.value}
+				label={_label}
+				onChange={props.onChange}
+			>
+			{props.options.map(x => 
+			<MenuItem key={x} value={x}>{x}</MenuItem>
+			)}
+			</Select>
+		}	</FormControl>
 	</div>
 	)
 }

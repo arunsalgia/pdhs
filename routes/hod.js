@@ -29,16 +29,24 @@ router.get('/get/:hid', async function(req, res, next) {
 });
 
 
-router.get('/hodnames', async function(req, res, next) {
+router.get('/hodname/:hid', async function(req, res, next) {
   setHeader(res);
-  
-  var tmp = await M_Hod.find({});
-	let midList = _.map(tmp, 'mid');
-
-	let allHodNames = await M_Member.find({mid: {$in: midList}});
-	allHodNames = _.map(allHodNames, o => _.pick(o, ['hid', 'mid', 'title', 'firstName', 'lastName', 'middleName', 'alias']));
-	console.log(allHodNames);
-	sendok(res, allHodNames);
+  var {hid} = req.params;
+	
+	if (hid === 'all') {
+		var tmp = await M_Hod.find({});
+		let midList = _.map(tmp, 'mid');
+	
+		let allHodNames = await M_Member.find({mid: {$in: midList}});
+		allHodNames = _.map(allHodNames, o => _.pick(o, ['hid', 'mid', 'title', 'firstName', 'lastName', 'middleName', 'alias']));
+		console.log(allHodNames);
+		sendok(res, allHodNames);
+	} 
+	else {
+		let memRec = await M_Member.findOne({hid: hid, order: 0});
+		if (!memRec) return senderr(res, 601, 'Invalid HID');
+		sendok(res, memRec);		
+	}
 });
 
 router.get('/list', async function(req, res, next) {

@@ -16,7 +16,7 @@ function getRootDir() {
 
 function capitalizeFirstLetter(string) {
 	let tmp =  string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
-	//console.log(tmp);
+	console.log(tmp);
   return tmp;
 }
 
@@ -454,16 +454,12 @@ router.get('/officeaddress', async function (req, res) {
 router.get('/temp', async function (req, res) {
 	setHeader(res);
 
-	let myData = await M_Member.find({});
+	let myData = await M_Humad.find({});
 	for(let i=0; i<myData.length; ++i) {
-		let temp = myData[i].alias.trim();
-		if (temp !== "") {
-			temp = temp.replace("(", "");
-			temp = temp.replace("(", "");
-			myData[i].alias = capitalizeFirstLetter(temp);
-		}
+		myData[i].remarks = myData[i].remarks.trim().replace("T\\FROM", "T\/F");
 		await myData[i].save();
 	}
+	console.log("Done");
 	sendok(res, "Done");
 });
 	

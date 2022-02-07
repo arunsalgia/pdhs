@@ -56,7 +56,7 @@ export default function Gotra() {
 			let myUrl = `${process.env.REACT_APP_AXIOS_BASEPATH}/gotra/list`;
 			let resp = await axios.get(myUrl);
 			//console.log(resp.data);
-			setGotraArray(resp.data);
+			setGotraArray(resp.data.filter(x => x.name !== "Other"));
 		} catch (e) {
 			setGotraArray([]);
 		}	

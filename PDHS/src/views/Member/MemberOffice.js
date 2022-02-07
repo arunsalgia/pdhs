@@ -53,6 +53,7 @@ CASTE, HUMADSUBCASTRE,
 
 
 import { 
+	getAdminInfo,
 	getImageName,
 	vsDialog,
 	getMemberName,
@@ -67,14 +68,17 @@ import {  } from 'views/functions';
 //import { update } from 'lodash';
 //import { updateCbItem } from 'typescript';
 
-var loginHid, loginMid;
-var adminData = {superAdmin: false, humadAdmin: false, pjymAdmin: false, prwsAdmin: false} ;
 
 export default function MemberOffice(props) {
+	const loginHid = parseInt(sessionStorage.getItem("hid"), 10);
+	const loginMid = parseInt(sessionStorage.getItem("mid"), 10);
+	const isMember = props.isMember;
+	const adminInfo = getAdminInfo();
+	
 	const gClasses = globalStyles();
 	const alert = useAlert();
 
-	const [memberArray, setMemberArray] = useState(JSON.parse(sessionStorage.getItem("members")))
+	const [memberArray, setMemberArray] = useState(props.list)
 
 	const [currentMemberData, setCurrentMemberData] = useState({});
 	const [currentHod, setCurrentHod] = useState({});

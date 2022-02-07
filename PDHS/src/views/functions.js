@@ -13,7 +13,56 @@ import {dialogOptions } from "views/globals";
 
 var crypto = require("crypto");
 var ifscsystem = require('ifsc-finder');
+
 var aadhar = require('aadhaar-validator')
+
+import {
+	ADMIN, DATESTR, MONTHNUMBERSTR,
+} from "views/globals.js";
+
+export function applicationSuccess(rec) {
+	console.log(rec);
+	let msg = `Successfully applied for ${rec.desc}. Kindly note the application number ${rec.id} for your reference.`
+	vsInfo("Application Success", msg,
+		{label: "Ok"}
+	);
+}
+
+
+export function displayType(width) {
+	if(width < 768 ){
+			return 'xs';
+	 }else if( width <= 991){
+			return 'xs'; 
+	 }else if( width <= 1199){
+			return 'md';
+	 }else{
+		 return 'lg';
+	 }
+}
+
+
+export function getAdminInfo() {
+	let tmp = JSON.parse(sessionStorage.getItem("adminRec"));
+	let adminByte = 0;
+	if (tmp.superduper)	
+		adminByte = 255;
+	else {
+		adminByte |= (tmp.superAdmin) ? ADMIN.superAdmin : 0;
+		adminByte |= (tmp.pjymAdmin)  ? ADMIN.pjymAdmin : 0;
+		adminByte |= (tmp.humadAdmin) ? ADMIN.humadAdmin : 0;
+		adminByte |= (tmp.prwsAdmin)  ? ADMIN.prwsAdmin : 0;
+	}
+	return adminByte;
+}
+
+export function dateString(dStr) {
+	let d = new Date(dStr);
+	let memDateStr = (d.getFullYear() !== 1900)
+		? memDateStr = `${DATESTR[d.getDate()]}/${MONTHNUMBERSTR[d.getMonth()]}/${d.getFullYear().toString().slice(-2)}`
+		: "";
+	return memDateStr;
+}
 
 export function isUserLogged() {
   //console.log("User is", sessionStorage.getItem("userName"));
@@ -865,7 +914,16 @@ export async function getAllPatients(userCid) {
 		return [];
 	}
 }
-	
+
+export function vsInfo(title, msg, yesB) {
+	let option = cloneDeep(dialogOptions);
+	//console.log(option); 
+	option.title = title;
+	option.message = msg;
+	option.buttons[0] = yesB;
+	confirmAlert(option);
+}
+
 export function vsDialog(title, msg, yesB, noB) {
 	let option = cloneDeep(dialogOptions);
 	//console.log(option); 
@@ -896,10 +954,10 @@ export function checkIfBirthday(dob) {
 	return ((today.getDate() === ddd.getDate()) && (today.getMonth() === ddd.getMonth())) ? true : false;
 }
 
-export function getMemberName(rec) {
+export function getMemberName(rec, alias=true) {
   //console.log("Alias is "+rec.alias)
   let sss = rec.title + " " + rec.lastName + " " + rec.firstName + " " + rec.middleName;
-  if (rec.alias !== "") {
+  if  (alias && (rec.alias !== "")) {
     sss += " (" + rec.alias + ")";
   }
   return sss;

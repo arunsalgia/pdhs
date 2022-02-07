@@ -7,7 +7,7 @@ import { UserContext } from "./UserContext";
 import "assets/css/material-dashboard-react.css?v=1.9.0";
 // import { DesktopWindows } from "@material-ui/icons";
 import { CricDreamTabs, setTab }from "CustomComponents/CricDreamTabs"
-import Welcome from "views/MED/Welcome";
+//import Welcome from "views/MED/Welcome";
 import SignIn from "views/Login/SignIn"
 
 //import SignUp from "views/Login/SignUp.js";
@@ -139,7 +139,7 @@ function AppRouter() {
 			} else {
 				//console.log("About to call Welcome");
 				if (process.env.REACT_APP_SHOWWELCOMEPAGE === 'true')
-					return (<Welcome/>)
+					return (<SignIn/>)
 				else
 					return <SignIn />
 			}

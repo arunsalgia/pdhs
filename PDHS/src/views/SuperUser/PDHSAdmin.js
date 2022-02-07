@@ -29,6 +29,7 @@ import {DisplayPageHeader, ValidComp, BlankArea,
 
 
 import { 
+	isMobile,
 	vsDialog,
 } from "views/functions.js";
 import { getMemberName } from 'views/functions';
@@ -61,7 +62,7 @@ export default function PDHSAdmin() {
 			let myUrl = `${process.env.REACT_APP_AXIOS_BASEPATH}/pdhsadm/list`;
 			let resp = await axios.get(myUrl);
 			//console.log(resp.data);
-			setAdminArray(resp.data);
+			setAdminArray(resp.data.filter(x => !x.superduper));
 		} catch (e) {
 			setAdminArray([]);
 		}	
@@ -169,11 +170,18 @@ export default function PDHSAdmin() {
 	return (
 	<div>
 		<Box  key={"MEMBOXHDR"} className={gClasses.boxStyle} borderColor="black" borderRadius={30} border={1} >
-		<Grid key={"MEMGRIDHDR"} className={gClasses.noPadding} container justify="center" alignItems="center" >
+		<Grid key={"MEMGRIDHDR"} className={gClasses.noPadding} container align="center" alignItems="center" >
+		{(!isMobile()) &&
 		<Grid align="left" key={"H1"} item xs={12} sm={12} md={6} lg={6} >
 			<Typography className={gClasses.patientInfo2Brown} >Name of the Member</Typography>
 			<Typography className={gClasses.patientInfo2Brown} >(Member Id)</Typography>
 		</Grid>
+		}
+		{(isMobile()) &&
+		<Grid align="left" key={"H1"} item xs={12} sm={12} md={6} lg={6} >
+			<Typography className={gClasses.patientInfo2Brown} >Name of the Member (Member Id)</Typography>
+		</Grid>
+		}
 		<Grid align="center" key={"H2"} item xs={2} sm={2} md={1} lg={1} >
 			<Typography className={gClasses.patientInfo2Brown} >Super</Typography>
 			<Typography className={gClasses.patientInfo2Brown} >Admin</Typography>
@@ -201,7 +209,7 @@ export default function PDHSAdmin() {
 		</Box>
 		{adminArray.map( (a, index) => 
 			<Box  key={"DOC0Box"+index} className={gClasses.boxStyle} borderColor="black" borderRadius={30} border={1} >
-			<Grid key={"DOC0GRD"+index} className={gClasses.noPadding} container justify="center" alignItems="center" >
+			<Grid key={"DOC0GRD"+index} className={gClasses.noPadding} container align="center" alignItems="center" >
 			<Grid align="left" key={"DOC1"+index} item xs={12} sm={12} md={6} lg={6} >
 				<Typography className={gClasses.patientInfo2}>{a.title + ' ' + a.name + ' ('+a.mid+')'}</Typography>
 			</Grid>

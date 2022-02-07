@@ -16,6 +16,7 @@ fs = require('fs');
 axios = require('axios');
 pin = require('pincode');
 
+
 // mongoose settings
 mongoose.set('useNewUrlParser', true);
 mongoose.set('useFindAndModify', false);
@@ -78,7 +79,7 @@ humadRouter = require('./routes/humad');
 pjymRouter = require('./routes/pjym');
 gotraRouter = require('./routes/gotra');
 adminRouter = require('./routes/admin');
-
+applicationRouter = require('./routes/application');
 
 app.set('view engine', 'html');
 //app.use(logger('dev'));
@@ -114,6 +115,7 @@ app.use('/humad', humadRouter);
 app.use('/pjym', pjymRouter);
 app.use('/gotra', gotraRouter);
 app.use('/pdhsadm', adminRouter);
+app.use('/application', applicationRouter);
 
 //Schema
 
@@ -248,6 +250,11 @@ MemberSchema = mongoose.Schema({
 	pmmMember: Boolean
 })
 MemberSchema.index({mid: 1});
+MemberSchema.index({ceased: 1});
+MemberSchema.index({pjymMember: 1});
+MemberSchema.index({humadMember: 1});
+MemberSchema.index({prwsMember: 1});
+
 
 PjymSchema = mongoose.Schema({
 	hid: Number,
@@ -259,6 +266,7 @@ PjymSchema = mongoose.Schema({
 	active: Boolean
 });
 PjymSchema.index({mid: 1});
+PjymSchema.index({active: 1});
 
 HumadSchema = mongoose.Schema({
 	hid: Number,
@@ -271,6 +279,8 @@ HumadSchema = mongoose.Schema({
 	active: Boolean
 });
 HumadSchema.index({mid: 1});
+HumadSchema.index({active: 1});
+
 
 PinCodeSchema = mongoose.Schema({
 	pinCode: Number,
@@ -280,6 +290,21 @@ PinCodeSchema = mongoose.Schema({
 	found: Boolean
 });
 
+ApplicationSchema = mongoose.Schema({
+	id: Number,
+	date: Date,
+	owner: String,
+	desc: String,
+	name: String,
+	hid: Number,
+	mid: Number,
+	isMember: Boolean,
+	data: String,
+	//type: String,
+	status: String,
+	adminName: String,
+	comments: String
+});
 
 // models
 User = mongoose.model("user", UserSchema);
@@ -291,6 +316,7 @@ M_Pjym = mongoose.model('pjym', PjymSchema);
 M_Gotra = mongoose.model('gotra', GotraSchema);
 M_Password = mongoose.model('password', PasswordSchema);
 M_PinCode = mongoose.model('pincode', PinCodeSchema);
+M_Application = mongoose.model('application', ApplicationSchema);
 
 router = express.Router();
 

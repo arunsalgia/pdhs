@@ -136,11 +136,11 @@ const globalStyles = makeStyles((theme) => ({
   },
 	drawerPaper: {
     //position: 'relative',
-    whiteSpace: 'nowrap',
-    width: 300,
+    //whiteSpace: 'nowrap',
+    //width: '90%',
     paddingTop: theme.spacing(4),
     paddingBottom: theme.spacing(4),
-    //background: '#535454',
+    //backgroundColor: '#00FF00',
     //color: '#fff',
   },
   titleOrange: {
@@ -196,6 +196,15 @@ const globalStyles = makeStyles((theme) => ({
 		fontSize: theme.typography.pxToRem(16),
 		fontWeight: theme.typography.fontWeightBold,
 		color: 'blue',
+	},
+	appHeader: { 
+			border: 2,
+			borderLeft: 15,
+			borderStyle: 'solid',
+			borderColor: 'black',
+			borderLeftColor: 'green',
+			backgroundColor: '#E0E0E0',
+			borderRadius: 7,
 	},
   patientInfo2Brown: {
 		fontSize: theme.typography.pxToRem(16),

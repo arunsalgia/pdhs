@@ -157,10 +157,11 @@ router.get('/padmavatimata/:uMobile/:uPassword', async function (req, res, next)
   uMobile = Number(uMobile);
   //uPassword = decrypt(uPassword);
 
+	/***** Currently ignore password check.
   let myCaptha = await M_Password.findOne({mobile: uMobile});
-  //if (!myCaptha) return senderr(res, 601, "Invalid password");
-  //if (myCaptha.captcha !== uPassword) return senderr(res, 601, "Invalid password");
-
+  if (!myCaptha) return senderr(res, 601, "Invalid password");
+  if (myCaptha.captcha !== uPassword) return senderr(res, 601, "Invalid password");
+	*/
  
   let myMem = await M_Member.findOne({$or :[{mobile: uMobile}, {mobile1: uMobile}] });
   if (!myMem) return senderr(res, 601, "Invalid User");

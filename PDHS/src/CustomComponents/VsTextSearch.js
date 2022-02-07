@@ -13,7 +13,7 @@ export default function VsTextSearch(props) {
 const gClasses = globalStyles();
 let _type = (props.type == null) ? 'text' : props.type;
 	return (
-		<TextField type={_type} className={gClasses.vgSpacing} padding={5} fullWidth 
+		<TextField type={_type} padding={5} fullWidth 
 			label={props.label} onChange={props.onChange} value={props.value}
 			InputProps={
 				{

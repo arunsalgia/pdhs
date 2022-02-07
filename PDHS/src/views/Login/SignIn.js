@@ -14,7 +14,7 @@ import Container from '@material-ui/core/Container';
 //import { UserContext } from "../../UserContext";
 import axios from "axios";
 //import { DesktopWindows } from '@material-ui/icons';
-import { isMobile, encrypt, } from "views/functions.js"
+import { isMobile, encrypt, getMemberName} from "views/functions.js"
 import {setTab} from "CustomComponents/CricDreamTabs.js"
 import { CricDreamLogo, ValidComp } from 'CustomComponents/CustomComponents.js';
 
@@ -61,7 +61,7 @@ export default function SignIn() {
 		window.sessionStorage.setItem("mid", userData.mid)
 		window.sessionStorage.setItem("memberRec", JSON.stringify(userData));
 		window.sessionStorage.setItem("adminRec", JSON.stringify(response.data.admin));
-    window.sessionStorage.setItem("userName", userName);
+    window.sessionStorage.setItem("userName", getMemberName(userData));
 
 		setTab(process.env.REACT_APP_HOME);
 	} catch (err) {
@@ -84,10 +84,13 @@ async function handleSubmitMobile(e) {
 
 
   return (
+	<div style={{backgroundColor: '#FFFFFF'}} >
 	<Container align="center" component="main" maxWidth="xs">
 	<CssBaseline />
-  <div align="center" className={gClasses.paper}>
+	<br />
+	<div align="center">
 	<CricDreamLogo />
+	</div>
   <Typography component="h1" variant="h5" align="center">Sign in</Typography>
   <br />
   {(stage === "MOBILE") &&
@@ -132,7 +135,7 @@ async function handleSubmitMobile(e) {
 		</Grid>	
     </ValidatorForm>	
   }
-  </div>
-	</Container>
+  </Container>
+	</div>
   );
 }

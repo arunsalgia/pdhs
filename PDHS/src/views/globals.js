@@ -19,6 +19,14 @@ export const ALPHABETSTR = [
 "U", "V", "W", "X", "Y", "Z"
 ];
 
+export const ADMIN = {superAdmin: 1, pjymAdmin: 2, humadAdmin: 4, prwsAdmin: 8, pmmAdmin: 16, };
+
+export const HUMADCATEGORY = [
+	{short: "S", desc: "Sangrakshak"}, 
+	{short: "L", desc: "Life"},
+	{short: "H", desc: "Humad"} 
+];
+
 export const WEEKSTR = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 export const SHORTWEEKSTR = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 export const MONTHSTR = ["January", "February", "March", "April", "May", "June",
@@ -68,10 +76,7 @@ eveningBlockEnd: 95,
 export const dialogOptions={
   title: 'Title',
   message: 'Message',
-  buttons: [
-    {label: 'Yes', onClick: () => alert('Click Yes')},
-    {label: 'No',  onClick: () => alert('Click No')}
-  ],
+  buttons: [],
   childrenElement: () => <div />,
   //customUI: ({ onClose }) => <div>Custom UI</div>,
   closeOnEscape: false,
@@ -169,3 +174,69 @@ export const RELATION = [
 	"Son in Law",
 	"Spouse"
 ];
+
+
+export const APPLICATIONTYPES = {
+	editGotra:  "Edit Gotra",
+	addMember: "Add Member",
+	splitFamily: "Split Family",
+	memberCeased: "Member Ceased",
+	spouseDetails: "Spouse Details",
+	memberHOD: "New HOD",
+};
+
+export const APPLICATIONSTATUS = {
+	approved:  "Approved",
+	rejected: "Rejected",
+	pending: "Pending"
+};
+
+export const MemberStyle={ 
+	marginTop: 5,
+	marginLeft: 5,
+	marginRight: 5,
+	paddingLeft: 10,
+	paddingTop: 4,
+	paddingBottomp: 4,
+	border: 2,
+	borderLeft: 10,
+	borderRight: 10,
+	borderStyle: 'solid',
+	borderColor: 'black',
+	borderLeftColor: 'green',
+	borderRightColor: 'green',
+	backgroundColor: '#F5F5F5',
+	borderRadius: 7,
+};
+	
+export const AppHeaderStyle={ 
+	marginTop: 3,
+	marginLeft: 1,
+	paddingRight: 10,
+	border: 2,
+	borderLeft: 10,
+	borderStyle: 'solid',
+	borderColor: 'black',
+	borderLeftColor: 'green',
+	backgroundColor: '#F5F5F5',
+	borderRadius: 7,
+	};
+	
+export	const AppDataStyle={ 
+			marginTop: 5,
+			border: 2,
+			borderRight: 15,
+			borderStyle: 'solid',
+			borderColor: 'black',
+			borderRightColor: 'green',
+			backgroundColor: '#F5F5F5',
+			backgroundColor: '#F5F5F5',
+			borderRadius: 7,
+			marginBottom: 5,
+			paddingLeft: 5,
+	};
+	
+	export const  SELECTSTYLE = {
+		marginBottom: 20, 
+		marginLeft: 15
+	} ;

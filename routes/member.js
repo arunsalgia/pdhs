@@ -45,6 +45,15 @@ router.get('/namelist/:fName/:mName/:lName', async function (req, res) {
 	sendok(res, myData);
 });		
 
+
+router.get('/namelist/all', async function (req, res) {
+  setHeader(res);
+
+	let myData = await M_Member.find({ceased: false}, {hid: 1, mid: 1, title: 1, firstName: 1, middleName: 1, lastName: 1, alias: 1, dateOfMarriage: 1, _id: 0}).sort({lastName: 1, firstName: 1, middleName: 1});
+	sendok(res, myData);
+	
+});		
+
 router.get('/hod/:hid', async function (req, res) {
   setHeader(res);
   var {hid } = req.params;
@@ -217,87 +226,23 @@ router.post('/scrolldown/:mid', async function (req, res) {
 });	
 
 
-router.get('/delete/:cid/:year/:month/:date/:order/:pid', async function (req, res) {
+router.get('/test', async function (req, res) {
   setHeader(res);
-  var {cid, pid, date, month, year, order } = req.params;
-	
-	//let myFilter = {date: Number(date), month: Number(month), year: Number(year), order: Number(order), pid: Number(pid)};
-	
-	let myFilter = { cid: cid, date: Number(date), month: Number(month), year: Number(year),order: Number(order), pid: Number(pid) };
-	//console.log(myFilter);
-	let hRec = await M_Appointment.deleteOne(myFilter);
-	//console.log(hRec);
-	sendok(res, "OK");
-});
-
-
-router.get('/cancel/:cid/:pid/:order', async function (req, res) {
-  setHeader(res);
-  var {cid, pid, order } = req.params;
-	
-	
-	let myFilter = { cid: cid, pid: Number(pid), order: Number(order), visit: VISITTYPE.pending };
-	//console.log(myFilter);
-	let hRec = await M_Appointment.findOne(myFilter);
-	if (hRec) {
-		//console.log(hRec);
-		hRec.visit = VISITTYPE.cancelled;
-		hRec.save();
-		sendok(res, "OK");
-	} else {
-		senderr(res, 601, "Appoint not found");
+  //var {cid, date, month, year } = req.params;
+	let allMem = await M_Member.find({});
+	let count = 0;
+	for(i=0; i < allMem.length; ++i) {
+		let tmp = allMem[i].dateOfMarriage.getFullYear();
+		if ((tmp === 1970) || (tmp === 1970)) {
+			allMem[i].dateOfMarriage = new Date(1900, 0, 1, 0, 0, 0);
+			await allMem[i].save();
+			++count;
+		}
 	}
-});
-
-
-router.get('/add/:cid/:apptdata', async function (req, res) {
-  setHeader(res);
-  var {cid, apptdata} = req.params;
-	
-	let newData = JSON.parse(apptdata);
-	console.log(newData);
-	
-	let hRec = await M_Appointment.find({
-		cid: cid, date: newData.date, month: newData.month, year: newData.year, 
-		order: newData.order, pid: newData.pid,
-	});
-	
-	if (hRec.count > 0) {
-		senderr(res, 601, "Duplicate Entry");
-		return;
-	}
-	
-	hRec = new M_Appointment();
-	hRec.cid = cid;
-	//hRec.data = newData.data;
-	hRec.apptTime  = newData.apptTime;
-	hRec.order = newData.order;
-	
-	//hRec.pid = newData.data.pid;
-	hRec.pid = newData.pid;
-	hRec.displayName = newData.displayName
-	
-	hRec.date = newData.date;
-	hRec.month = newData.month;
-	hRec.year = newData.year;	
-	hRec.hour = newData.hour;
-	hRec.minute = newData.minute;
-	
-	hRec.visit = newData.visit;
-	
-	hRec.save();
-	sendok(res, hRec);
-});	
-
-router.get('/list/date/:cid/:year/:month/:date', async function (req, res) {
-  setHeader(res);
-  var {cid, date, month, year } = req.params;
-	
-	publishAppointments(res, {cid: cid, date: Number(date), month: Number(month), year: Number(year)})
+	console.log(`Member count is ${count}`);
+	sendok(res, "Done");
 });		
-
-
-
+ 
 
 
 function sendok(res, usrmsg) { res.send(usrmsg); }

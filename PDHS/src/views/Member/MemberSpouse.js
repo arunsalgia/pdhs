@@ -1,6 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import {  CssBaseline } from '@material-ui/core';
 import { ValidatorForm, TextValidator} from 'react-material-ui-form-validator';
+import Link from '@material-ui/core/Link';
 import Divider from '@material-ui/core/Divider';
 import Avatar from '@material-ui/core/Avatar';
 import lodashCloneDeep from 'lodash/cloneDeep';
@@ -12,9 +13,6 @@ import VsCancel from "CustomComponents/VsCancel";
 import VsRadio from "CustomComponents/VsRadio";
 import VsRadioGroup from "CustomComponents/VsRadioGroup";
 import VsCheckBox from "CustomComponents/VsCheckBox";
-
-
-
 
 import axios from "axios";
 import Drawer from '@material-ui/core/Drawer';
@@ -38,114 +36,90 @@ import {
 } from "CustomComponents/CustomComponents.js"
 
 import {
-//SupportedMimeTypes, SupportedExtensions,
-//str1by4, str1by2, str3by4,
-//HOURSTR, MINUTESTR, 
-MEMBERTITLE, RELATION, SELFRELATION, GENDER, BLOODGROUP, MARITALSTATUS,
+MARITALSTATUS, ADMIN, APPLICATIONTYPES,
 DATESTR, MONTHNUMBERSTR,
-CASTE, HUMADSUBCASTRE,
 } from "views/globals.js";
 
 
 import { 
 	getImageName,
-	vsDialog,
+	vsDialog, applicationSuccess,
 	getMemberName,
-	dispAge,
+	dispAge, getAdminInfo, dateString,
+	decrypt, dispMobile, dispEmail, disableFutureDt, 
 } from "views/functions.js";
-
-import { 
-	decrypt, dispMobile, dispEmail, disableFutureDt,
-} from 'views/functions';
-import {  } from 'views/functions';
-
-//import { update } from 'lodash';
-//import { updateCbItem } from 'typescript';
-
-var loginHid, loginMid;
-var adminData = {superAdmin: false, humadAdmin: false, pjymAdmin: false, prwsAdmin: false} ;
 
 
 export default function MemberSpouse(props) {
+	const loginHid = parseInt(sessionStorage.getItem("hid"), 10);
+	const loginMid = parseInt(sessionStorage.getItem("mid"), 10);
+	const isMember = props.isMember;
+	//console.log(loginHid, isMember);
+	const adminInfo = getAdminInfo();
+	
 	const gClasses = globalStyles();
 	const alert = useAlert();
 
-	const [memberArray, setMemberArray] = useState(JSON.parse(sessionStorage.getItem("members")));
+	const [memberArray, setMemberArray] = useState(props.list);
+	const [directory, setDirectory] = useState(JSON.parse(sessionStorage.getItem("directory")));
 	
-	//const [currentMember, setCurrentMember] = useState("");
-	const [currentMemberData, setCurrentMemberData] = useState({});
-	const [currentHod, setCurrentHod] = useState({});
-	const [gotraArray, setGotraArray] = useState([]);
-	const [gotraFilterArray, setGotraFilterArray] = useState([]);
-	//const [ceasedArray, setCeasedArray] = useState([]);
-	const [hodNamesArray, setHodNamesArray] = useState([])
-	const [groomArray, setGroomArray] = useState([])
-	const [brideArray, setBrideArray] = useState([])
-	const [domArray, setDomArray] = useState([])
-	const [domMomemtArray, setDomMomemtArray] = useState([])
-	const [unLinkedLadies, setUnLinkedLadies] = useState([]);
-	const [radioRecord, setRadioRecord] = useState(0);
-	const [emurDate1, setEmurDate1] = useState(moment());
-	const [currentSelection, setCurrentSelection] = useState("");
-
-	const [emurGroomArray, setEmurGroomArray] = useState([]);
-	const [emurBrideArray, setEmurBrideArray] = useState([]);
-	const [emurDomArray, setEmurDomArray] = useState([]);
-
-
-	const [hodRadio, setHodRadio] = useState(1);
-	const [cbList, setCbList] = useState([]);
+	const [coupleArray, setCoupleArray] = useState([]);
+	const [unLinkedMembers, setUnLinkedMembers] = useState([]);
+	const [brideOrGroomArray, setBrideOrGroomArray] = useState([]);
+	const [emurCoupleArray, setEmurCoupleArray] = useState([]);
+	const [newCoupleMember, setNewCoupleMember] = useState("");
+	const [currentIndex, setCurrentIndex] = useState(0);
+	
 	const [isDrawerOpened, setIsDrawerOpened] = useState("");
-	
-	const [emurGotra, setEmurGotra] = useState("");
-	const [emurVillage, setEmurVillage] = useState("");
-	const [emurPinCode, setEmurPincCode] = useState("");
-	const [emurResPhone1, setEmurResPhone1] = useState("");
-	const [emurResPhone2, setEmurResPhone2] = useState("");
-	const [emurPinResp, setEmurPinResp] = useState({});
-
-	const [emurAddr1, setEmurAddr1] = useState("");
-	const [emurAddr2, setEmurAddr2] = useState("");
-	const [emurAddr3, setEmurAddr3] = useState("");
-	const [emurAddr4, setEmurAddr4] = useState("");
-	const [emurAddr5, setEmurAddr5] = useState("");
-	const [emurAddr6, setEmurAddr6] = useState("");
-	const [emurAddr7, setEmurAddr7] = useState("");
-	const [emurAddr8, setEmurAddr8] = useState("");
-	const [emurAddr9, setEmurAddr9] = useState("");
-	const [emurAddr10, setEmurAddr10] = useState("");
-	const [emurAddr11, setEmurAddr11] = useState("");
-	const [emurAddr12, setEmurAddr12] = useState("");
-	const [emurAddr13, setEmurAddr13] = useState("");
-
+	const [isLeftDrawerOpened, setIsLeftDrawerOpened] = useState("");
 	const [registerStatus, setRegisterStatus] = useState(0);
 
 	
 
 	
   useEffect(() => {	
-		const getDetails = async () => {	
-			let tmp = memberArray.filter(x => x.gender === "Male" && x.emsStatus === "Married");
-			setGroomArray(lodashMap(tmp, 'mid'));
-			console.log("Males", tmp);
-			
-			// create marriage date
-			setDomArray(lodashMap(tmp, 'dateOfMarriage'));
-
-			// create bride array
-			let tmp1 = [];
-			for(let i=0; i<tmp.length; ++i) {
-				//console.log(tmp[i]);
-				tmp1.push(tmp[i].spouseMid);
+		const getMarriageDetails = async () => {	
+		
+			let allGrooms = memberArray.filter(x => 
+				x.emsStatus === 'Married' &&
+				x.gender === 'Male'
+			);
+			let myCouples = [];
+			for(var i=0; i<allGrooms.length; ++i) {
+				let bTmp = directory.find(x => x.mid === allGrooms[i].spouseMid);
+				let bName = (bTmp) ? getMemberName(bTmp, false) : "";
+				let bMid = (bTmp) ? bTmp.mid : 0;
+				myCouples.push({
+					gMid: allGrooms[i].mid, gName: getMemberName(allGrooms[i], false),
+					bMid: bMid, bName: bName,
+					dom: allGrooms[i].dateOfMarriage, momentDom: moment(allGrooms[i].dateOfMarriage),
+				});
 			}
-			setBrideArray(tmp1);
-			console.log(tmp1);
+			
+			let ladiesMid = lodashMap(myCouples.filter(x => x.bMid !== 0), 'bMid');
+			//console.log(ladiesMid);
+			let balanceBrides = memberArray.filter(x => 
+				x.emsStatus === 'Married'  && 
+				x.gender === 'Female' &&
+				!ladiesMid.includes(x.mid)
+			);
+			//console.log(balanceBrides);
+			
+			for(var i=0; i<balanceBrides.length; ++i) {
+				let gTmp = directory.find(x => x.mid === balanceBrides[i].spouseMid);
+				let gName = (gTmp) ? getMemberName(gTmp, false) : "";
+				let gMid = (gTmp) ? gTmp.mid : 0;
+				myCouples.push({
+					gMid: gMid, gName: gName,
+					bMid: balanceBrides[i].mid , bName: getMemberName(balanceBrides[i], false),
+					dom: balanceBrides[i].dateOfMarriage, momentDom: moment(balanceBrides[i].dateOfMarriage),
+				});
+			}
+			//console.log(myCouples);
+			setCoupleArray(myCouples);
 		}
-		//setCurrentMember(getMemberName(props.member));
-		loginHid = Number(sessionStorage.getItem("hid"));
-		loginMid = Number(sessionStorage.getItem("mid"));
-		adminData = JSON.parse(sessionStorage.getItem("adminRec"));
-		getDetails();
+
+		getMarriageDetails();
 		
   }, []);
 
@@ -181,219 +155,249 @@ export default function MemberSpouse(props) {
     )
   }
 
-
-
-
-	function handleCeasedMemberConfirm() {
-		setIsDrawerOpened("");
-		let tmpRec = memberArray.find(x => x.order === radioRecord);
-		let d = emurDate1.toDate();
-		let dateStr = d.getFullYear() + MONTHNUMBERSTR[d.getMonth()] + DATESTR[d.getDate()];
+	async function handleEditSpouse() {
+		let spouseDetails = {couple: emurCoupleArray, single: unLinkedMembers};
+		let tmp = encodeURIComponent(JSON.stringify({
+			owner: 'PRWS',
+			desc: APPLICATIONTYPES.spouseDetails,
+			name: sessionStorage.getItem("userName"),
+			hid: loginHid,
+			mid: loginMid,
+			isMember: isMember,
+			data: spouseDetails
+		}));
 		try {
-			let myUrl = `${process.env.REACT_APP_AXIOS_BASEPATH}/member/ceased/${tmpRec.mid}/${dateStr}`
-			axios.post(myUrl);
-			let tmpArray = memberArray.filter(x => x.order !== radioRecord);
-			for(let i=0; i<tmpArray.length; ++i) {
-				tmpArray[i].order = i;
-			}
-			setMemberArray(tmpArray);
-			setRadioRecord(0);
-			} catch (e) {
+			let myUrl = `${process.env.REACT_APP_AXIOS_BASEPATH}/application/add/${tmp}`;
+			let resp = await axios.get(myUrl);
+			applicationSuccess(resp.data);
+		} catch (e) {
 			console.log(e);
-			alert.error(`Error setting member as ceased`);
-		}	
+			alert.error(`Error applying for spouse details`);
+		}
+		setIsDrawerOpened("");
+	}
+
+
+	function selectBrideGroom(index, whoIsIt) {
+		//console.log(whoIsIt);
+		let tmpArray = unLinkedMembers.filter(x => x.type === whoIsIt);
+		if (tmpArray.length === 0) return alert.error(`No ${whoIsIt} available`);
+		setBrideOrGroomArray(tmpArray);
+		setNewCoupleMember(tmpArray[0].mid);
+		setCurrentIndex(index);
+		setIsLeftDrawerOpened(whoIsIt);
+	}
+
+	function handleAddBrideOrGroomConfirm() {
+		//console.log(currentIndex);
+		let myRec = unLinkedMembers.find(x => x.mid === newCoupleMember);
+		//console.log(myRec);
+		let tmpArray = lodashCloneDeep(emurCoupleArray);
+		if (myRec.type === 'Groom') {
+			tmpArray[currentIndex].gMid = myRec.mid;
+			tmpArray[currentIndex].gName = myRec.name;
+		} else {
+			tmpArray[currentIndex].bMid = myRec.mid;
+			tmpArray[currentIndex].bName = myRec.name;
+		}
+		setEmurCoupleArray(tmpArray);
+		setUnLinkedMembers(unLinkedMembers.filter(x => x.mid !== myRec.mid));
+		setIsLeftDrawerOpened("");
 	}
 	
-
-	function setSpouseEdit(action) {
-		setEmurGroomArray(groomArray);
-		setEmurBrideArray(brideArray);
-		let tmp = [];
-		for(let i=0; i < domArray.length; ++i)
-			tmp.push(moment(new Date(domArray[i])));
-		setEmurDomArray(tmp);
-
-		let tmp1 = memberArray.filter(x => x.gender === "Female" && x.emsStatus === "Married" && x.spouseMid === 0);
-		setUnLinkedLadies(lodashMap(tmp1, 'mid'));
-		console.log(tmp1);
-		setIsDrawerOpened(action);
-	}
-
-	function DisplaySpouseButtons() {
-		let owner = (memberArray[0].hid === loginHid);
-		let admin = adminData.superAdmin;
-		if (admin)
-			return <VsButton align="right" name="Set Spouse Relationship" onClick={() => setSpouseEdit("EDITSPOUSE")} />
-		else if (owner)
-			return <VsButton align="right" name="Apply Spouse Relationship" onClick={() => setSpouseEdit("APPLYSPOUSE")} />
-		else
-			return null;
-	}
 	
+	function handleAddNewCouple() {
+		//console.log(unLinkedMembers.length);
+		setNewCoupleMember(unLinkedMembers[0].mid);
+		setIsLeftDrawerOpened("ADDNEW");
+	}
 
-	function DisplaySpouseInformation() {
-		let hands = getImageName("MARRIAGEHANDS");
-		return (
-		<div>
-		{groomArray.map( (g, index) => {
-			let gRec = memberArray.find(x => x.mid === g);
-			let gName = getMemberName(gRec);
-			let bDate = "N/A";
-			let d = new Date(domArray[index]);
-			if (d.getFullYear() !== 1900) {
-				bDate = DATESTR[d.getDate()]+"/"+MONTHNUMBERSTR[d.getMonth()]+"/"+d.getFullYear();
+	function handleAddCoupleMemberConfirm() {
+		let selRec = unLinkedMembers.find(x => x.mid === newCoupleMember);
+		let tmp = {
+			gMid: (selRec.type === 'Groom') ?	selRec.mid : 0,
+			gName: (selRec.type === 'Groom') ?	selRec.name : "",
+			bMid: (selRec.type === 'Bride') ?	selRec.mid : 0,
+			bName: (selRec.type === 'Bride') ?	selRec.name : "",
+			dom: new Date(2000, 0, 1), 
+			momentDom: moment(new Date(2000, 0, 1)),
+		};
+		setEmurCoupleArray(emurCoupleArray.concat([tmp]));
+		setUnLinkedMembers(unLinkedMembers.filter(x => x.mid !== newCoupleMember));
+		setIsLeftDrawerOpened("");
+	}
+
+	function handleRemoveRelation(index, whoIsIt) {
+		//console.log(index, whoIsIt);
+		
+		let myMid = (whoIsIt === 'Groom') ? emurCoupleArray[index].gMid : emurCoupleArray[index].bMid;
+		let myName = (whoIsIt === 'Groom') ? emurCoupleArray[index].gName : emurCoupleArray[index].bName;
+		
+		let tmp = [{mid: myMid, name: myName, type: whoIsIt}].concat(unLinkedMembers);
+		//console.log(tmp);
+		setUnLinkedMembers(tmp);
+		
+		// unlink the selected member
+		let tmpArray = lodashCloneDeep(emurCoupleArray);
+		if  (whoIsIt === 'Groom') {
+			if (tmpArray[index].bMid === 0)
+				tmpArray = tmpArray.filter(x => x.gMid !== myMid);
+			else {
+				tmpArray[index].gMid = 0;
+				tmpArray[index].gName = "";
 			}
-			let bRec = memberArray.find(x => x.mid === brideArray[index]);
-			let bName = "";
-			if (bRec) bName = getMemberName(bRec);
-			return (
-				<Grid key={"MEMGRID"+index} className={gClasses.noPadding} key={"SYM"+index} container justify="center" alignItems="center" >
-				<Grid align="right" item xs={5} sm={5} md={5} lg={5} >
-					<Typography className={gClasses.patientInfo2Brown}>{gName}</Typography>
-				</Grid>
-				<Grid item xs={5} sm={5} md={2} lg={2} >
-				<Typography className={gClasses.patientInfo2Blue}>
-					<Avatar size="small" variant="circular" src={hands} />
-					{bDate}
-				</Typography>
-				</Grid>
-				<Grid align="left" item xs={5} sm={5} md={5} lg={5} >
-					<Typography className={gClasses.patientInfo2Brown}>{bName}</Typography>
-				</Grid>
-				</Grid>
-			)}
-		)}	
-		</div>	
-	)}
-
-	function handleSpouseLink(index) {
-		console.log(index);
-		let mid = unLinkedLadies[index];
-		console.log(mid);
-		let tmpArray = [].concat(brideArray);
-		console.log(brideArray);
-		for(let i=0; i<tmpArray.length; ++i) {
-			if (tmpArray[i] === 0) {
-				console.log(`Found unlinked groom at index ${i}`)
-				tmpArray[i] = mid;
-				console.log(tmpArray)
-				setBrideArray(tmpArray);
-				setUnLinkedLadies(unLinkedLadies.filter(x => x !== mid));
-				return;
+		} else {
+			if (tmpArray[index].gMid === 0)
+				tmpArray = tmpArray.filter(x => x.bMid !== myMid);
+			else {
+				tmpArray[index].bMid = 0;
+				tmpArray[index].bName = "";
 			}
 		}
+		//console.log(tmpArray);
+		setEmurCoupleArray(tmpArray);
 	}
 
-	function handleRemoveRelation(index) {
-		setUnLinkedLadies([brideArray[index]].concat(unLinkedLadies));
-		let tmpArray = brideArray;
-		tmpArray[index] = 0;
-		setBrideArray(tmpArray);
+	function setSpouseEdit(action) {
+		setEmurCoupleArray(lodashCloneDeep(coupleArray));
+		//setDomMomemtArray(lodashMap(coupleArray, 'momentDom'));
+		setIsDrawerOpened(action);
+		setUnLinkedMembers([]);
 	}
 
-	function handleEditSpouse() {
 
-	}
-
-	function handleDate1(d) {
-		setEmurDate1(d);
-	}
-
-	function handleDateArray(index, e) {
+	function updateDom(index, e) {
+		let tmpArray = lodashCloneDeep(emurCoupleArray);
+		tmpArray[index].momentDom = e;
+		setEmurCoupleArray(tmpArray);
+		/*
 		console.log(index);
 		console.log(e);
 		let tmp = [].concat(domMomemtArray);
 		tmp[index] = e;
 		setDomMomemtArray(tmp);
+		*/
 	}
 
-
-	function updateCbItem(index) {
-		let tmp = [].concat(cbList);
-		tmp[index] = !tmp[index];
-		setCbList(tmp);
-		if ((!tmp[index]) && (hodRadio === index))
-		setHodRadio(0);
-	}
-
-	function updateHodRadio(index) {
-		if (cbList[index])
-			setHodRadio(index);
+	function DisplaySpouseButtons() {
+		let owner = (memberArray[0].hid === loginHid);
+		let admin = (adminInfo & (ADMIN.superAdmin | ADMIN.prwsAdmin) !== 0);
+		if (admin || owner)
+			return <VsButton align="right" name="Apply Spouse Relationship" onClick={() => setSpouseEdit("APPLYSPOUSE")} />
+		else
+			return null;
 	}
 	
-	
+	function DisplaySpouseInformation() {
+		let hands = getImageName("MARRIAGEHANDS");
+		return (
+		<div>
+		<Grid key={"MEMGRIDHDR"} className={gClasses.noPadding} container align="center" alignItems="center" >
+		<Grid item xs={5} sm={5} md={5} lg={5} >
+			<Typography className={gClasses.patientInfo2Brown}>Groom</Typography>
+		</Grid>
+		<Grid item xs={2} sm={2} md={2} lg={2} >
+		</Grid>
+		<Grid item xs={5} sm={5} md={5} lg={5} >
+			<Typography className={gClasses.patientInfo2Brown}>Bride</Typography>
+		</Grid>
+		</Grid>
+		{coupleArray.map( (c, index) => {
+			let myDate = dateString(c.dom);
+			if (myDate === "") myDate = "N.A.";
+			return (
+				<Box  key={"SPOUSE"+index} className={gClasses.boxStyle} borderColor="black" borderRadius={7} border={1} >
+				<Grid key={"MEMGRID"+index} className={gClasses.noPadding} container align="center" alignItems="center" >
+				<Grid item xs={5} sm={5} md={5} lg={5} >
+					<Typography className={gClasses.patientInfo2Blue}>{c.gName}</Typography>
+				</Grid>
+				<Grid item xs={2} sm={2} md={2} lg={2} >
+					<Avatar size="small" variant="circular" src={hands} />
+					<Typography className={gClasses.patientInfo2Green}>
+						{myDate}
+					</Typography>
+				</Grid>
+				<Grid item xs={5} sm={5} md={5} lg={5} >
+					<Typography className={gClasses.patientInfo2Blue}>{c.bName}</Typography>
+				</Grid>
+				</Grid>
+				</Box>					
+			)}
+		)}	
+		</div>
+	)}
+
 	return (
 	<div className={gClasses.webPage} align="center" key="main">
 	<DisplaySpouseButtons />
 	<DisplaySpouseInformation />
-	<Drawer 
-		anchor="right"
-		variant="temporary"
-		open={isDrawerOpened != ""}
-	>
+	{(isDrawerOpened !== "") &&
+	<Drawer key="RIGHT" anchor="right" variant="temporary" open={isDrawerOpened != ""}>
 	<Box className={gClasses.boxStyle} borderColor="black" borderRadius={7} border={1} >
 	<VsCancel align="right" onClick={() => { setIsDrawerOpened("")}} />
 	{((isDrawerOpened === "EDITSPOUSE") || (isDrawerOpened === "APPLYSPOUSE")) &&
 		<div>
-		<Typography className={gClasses.title}>{((isDrawerOpened === "EDITSPOUSE") ? "Edit" : "Application to change") + " Spouse relationship of family members of "+getMemberName(memberArray[0])}</Typography>
+		<Typography className={gClasses.title}>{((isDrawerOpened === "EDITSPOUSE") ? "Edit" : "Application") + " for Spouse"}</Typography>
 		<br />
-		{groomArray.map( (g, index) => {
-			let gRec = memberArray.find(x => x.mid === g);
-			let gName = getMemberName(gRec);
-			let bRec = memberArray.find(x => x.mid === brideArray[index]);
-			let bName = (bRec) ? getMemberName(bRec) : "";
+		{emurCoupleArray.map( (c, index) => {
+			//console.log(c);
 			return (
-			<Box  key={"MEMBOX"+index} className={gClasses.boxStyle} borderColor="black" borderRadius={30} border={1} >
-			<Grid key={"MEMGRID"+index} className={gClasses.noPadding} key={"SYM"+index} container justify="center" alignItems="center" >
-				<Grid align="left" item xs={12} sm={12} md={12} lg={12} >
-					<Typography className={gClasses.patientInfo2Brown}>{gName}</Typography>
-				</Grid>
-				<Grid align="left" item xs={8} sm={8} md={8} lg={8} >
-					<Datetime 
-						className={gClasses.dateTimeBlock}
-						inputProps={{className: gClasses.dateTimeNormal}}
-						timeFormat={false} 
-						initialValue={domMomemtArray[index]}
-						dateFormat="DD/MM/yyyy"
-						isValidDate={disableFutureDt}
-						onClose={(event) => handleDateArray(index, event)}
-						closeOnSelect={true}
-					/>
-				</Grid>
-				<Grid align="right" item xs={4} sm={4} md={4} lg={4} >
-					<VsCancel onClick={() => handleRemoveRelation(index)} />
-				</Grid>
-				{(bName !== "") &&
-				<Grid align="left" item xs={12} sm={12} md={12} lg={12} >
-					<Typography className={gClasses.patientInfo2Brown}>{bName}</Typography>
-				</Grid>
+			<Box className={gClasses.boxStyle} borderColor="black" borderRadius={15} border={1} >
+			<Grid key={"MEMGRID1"+index} className={gClasses.noPadding} container align="center" alignItems="center" >
+			<Grid align="left" item xs={11} sm={11} md={11} lg={11} >
+				{(c.gName !== '') &&
+					<Typography className={gClasses.patientInfo2Brown}>{c.gName}</Typography>
 				}
-				{(bName === "") &&
-				<Grid align="left" item xs={12} sm={12} md={12} lg={12} >
-					<Typography className={gClasses.patientInfo2Blue}>Select Bride</Typography>
-				</Grid>
+				{(c.gName === '') &&
+					<VsButton align="center" name="Select Groom" onClick={() => selectBrideGroom(index, 'Groom')} />
 				}
+			</Grid>
+			<Grid item xs={1} sm={1} md={1} lg={1} >
+				{(c.gName !== "") &&
+					<VsCancel onClick={() => handleRemoveRelation(index, 'Groom')} />	
+				}		
+			</Grid>
+			</Grid>
+			<Grid key={"MEMGRID2"+index} className={gClasses.noPadding} container align="center" alignItems="center" >
+			<Grid align="center" item xs={3} sm={2} md={2} lg={2} >
+				<Typography className={gClasses.patientInfo2Green}>DOM</Typography>
+			</Grid>
+			<Grid item xs={false} sm={1} md={1} lg={1} />
+			<Grid align="left" item xs={3} sm={3} md={3} lg={3} >
+				<Datetime 
+					className={gClasses.dateTimeBlock}
+					inputProps={{className: gClasses.dateTimeNormal}}
+					timeFormat={false} 
+					value={c.momentDom}
+					dateFormat="DD/MM/yyyy"
+					isValidDate={disableFutureDt}
+					onClose={(event) => updateDom(index, event)}
+					closeOnSelect={true}
+				/>
+			</Grid>
+			</Grid>
+			<Grid key={"MEMGRID3"+index} className={gClasses.noPadding} container align="center" alignItems="center" >
+			<Grid align="left" item xs={11} sm={11} md={11} lg={11} >
+				{(c.bName !== "") &&
+					<Typography className={gClasses.patientInfo2Brown}>{c.bName}</Typography>
+				}
+				{(c.bName === "") &&
+					<VsButton align="center" name="Select Bride" onClick={() => selectBrideGroom(index, 'Bride')} />
+				}
+			</Grid>
+			<Grid item xs={1} sm={1} md={1} lg={1} >
+				{(c.bName !== "") &&
+					<VsCancel onClick={() => handleRemoveRelation(index, 'Bride')} />	
+				}		
+			</Grid>
 			</Grid>
 			</Box>
 			)}
 		)}
+		{(unLinkedMembers.length > 0) &&
+		 <Link href="#" onClick={handleAddNewCouple} variant="body2">Add Couple</Link>
+		}
 		<br />
-		<Divider className={gClasses.divider} />
-		<br />
-		{unLinkedLadies.map( (u, index) => {
-			let gRec = memberArray.find(x => x.mid === u);
-			let gName = getMemberName(gRec);
-			return (
-			<Box  key={"MEMBOX"+index} className={gClasses.boxStyle} borderColor="black" borderRadius={30} border={1} >
-			<Grid key={"MEMGRID"+index} className={gClasses.noPadding} key={"SYM"+index} container justify="center" alignItems="center" >
-				<Grid align="right" item xs={12} sm={6} md={4} lg={4} >
-					<Typography className={gClasses.patientInfo2Brown} onClick={() => handleSpouseLink(index)}>{gName}
-					</Typography>
-				</Grid>
-			</Grid>
-			</Box>
-			)}
-		)}
 		<DisplayRegisterStatus />
 		<BlankArea />
 		<VsButton align="center" name={(isDrawerOpened === "EDITSPOUSE") ? "Update" : "Apply"} 
@@ -402,7 +406,53 @@ export default function MemberSpouse(props) {
 	}	
 	</Box>
 	</Drawer>
-	{/*</Container>*/}
-  </div>
+	}
+	<Drawer ley="LEFT" anchor="left" variant="temporary" open={isLeftDrawerOpened != ""}>
+	<Box className={gClasses.boxStyle} borderColor="black" borderRadius={7} border={1} >
+	<VsCancel align="right" onClick={() => { setIsLeftDrawerOpened("")}} />	
+	{(isLeftDrawerOpened === "ADDNEW") &&
+	<div>
+		<Typography align="center" className={gClasses.patientInfo2Brown}>Add new  Couple </Typography>
+		<br />
+		<br />
+		{unLinkedMembers.map( (m, index) => {
+			return (
+				<Grid className={gClasses.noPadding} key={"NEWCouple"+index} container alignItems="center" align="center">
+				<Grid align="left"  item xs={11} sm={11} md={11} lg={11} >
+					<Typography className={gClasses.title}>{m.name}</Typography>
+				</Grid>	
+				<Grid item xs={1} sm={1} md={1} lg={1} >
+					<VsRadio checked={newCoupleMember === m.mid} onClick={() => setNewCoupleMember(m.mid)}  />
+				</Grid>
+				</Grid>	
+			)}
+		)}
+		<BlankArea />
+		<VsButton align="center" name="Add Couple Member" onClick={handleAddCoupleMemberConfirm} />
+	</div>
+	}
+	{((isLeftDrawerOpened === "Groom") || (isLeftDrawerOpened === "Bride")) &&
+	<div>
+		<Typography align="center" className={gClasses.patientInfo2Brown}>{"Select "+isLeftDrawerOpened}</Typography>
+		<br />
+		{brideOrGroomArray.map( (m, index) => {
+			return (
+				<Grid className={gClasses.noPadding} key={"NEWCouple"+index} container alignItems="center" align="center">
+				<Grid align="left"  item xs={11} sm={11} md={11} lg={11} >
+					<Typography className={gClasses.title}>{m.name}</Typography>
+				</Grid>	
+				<Grid item xs={1} sm={1} md={1} lg={1} >
+					<VsRadio checked={newCoupleMember === m.mid} onClick={() => setNewCoupleMember(m.mid)}  />
+				</Grid>
+				</Grid>	
+			)}
+		)}
+		<BlankArea />
+	<VsButton align="center" name={"Add "+isLeftDrawerOpened} onClick={handleAddBrideOrGroomConfirm} />
+	</div>
+	}
+	</Box>
+	</Drawer>
+	</div>
   );    
 }

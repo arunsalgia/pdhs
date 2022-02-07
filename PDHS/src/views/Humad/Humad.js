@@ -2,19 +2,19 @@ import React, { useState, useContext, useEffect } from 'react';
 import { Container, CssBaseline } from '@material-ui/core';
 import { ValidatorForm, TextValidator} from 'react-material-ui-form-validator';
 import Divider from '@material-ui/core/Divider';
-import lodashCloneDeep from 'lodash/cloneDeep';
-import lodashSortBy from "lodash/sortBy"
-import lodashMap from "lodash/map";
+import TablePagination from '@material-ui/core/TablePagination';
+import ReactTooltip from "react-tooltip";
+
+//import lodashCloneDeep from 'lodash/cloneDeep';
+//import lodashSortBy from "lodash/sortBy"
+//import lodashMap from "lodash/map";
 
 import VsButton from "CustomComponents/VsButton";
 import VsCancel from "CustomComponents/VsCancel";
-import VsCheckBox from "CustomComponents/VsCheckBox";
 import VsTextSearch from "CustomComponents/VsTextSearch";
-import VsRadio from "CustomComponents/VsRadio";
-import VsPagination from 'CustomComponents/VsPagination';
+import VsRadioGroup from "CustomComponents/VsRadioGroup";
 import VsRolodex from 'CustomComponents/VsRolodex';
 
-//import { useLoading, Audio } from '@agney/react-loading';
 import axios from "axios";
 import Drawer from '@material-ui/core/Drawer';
 import { useAlert } from 'react-alert'
@@ -31,6 +31,8 @@ import moment from "moment";
 import globalStyles from "assets/globalStyles";
 //import modalStyles from "assets/modalStyles";
 
+import InfoIcon   from 	'@material-ui/icons/Info';
+import Upgrade from 	'@material-ui/icons/ArrowUpwardOutlined';
 
 const BlankMemberData = {firstName: "", middleName: "", lastName: ""};
 
@@ -39,22 +41,19 @@ import {
 } from "CustomComponents/CustomComponents.js"
 
 import {
-//SupportedMimeTypes, SupportedExtensions,
-//str1by4, str1by2, str3by4,
-//HOURSTR, MINUTESTR, 
-DATESTR, MONTHNUMBERSTR,
-MAGICNUMBER,
+	ADMIN, HUMADCATEGORY,
 } from "views/globals.js";
 
 import { 
+	isMobile,
+	dateString,
 	vsDialog,
 	getMemberName,
 	dispAge,
+	getAdminInfo,
+	disableFutureDt,
 } from "views/functions.js";
 
-import { 
-	disableFutureDt,
-} from 'views/functions';
 
 /*
 const useStyles = makeStyles((theme) => ({
@@ -157,80 +156,57 @@ const useStyles = makeStyles((theme) => ({
 */
 
 
-const ROWSPERPAGE=11
+const ROWSPERPAGE = isMobile() ? 7 : 12;
+
 export default function Humad() {
+	const adminInfo = getAdminInfo();
+	const humadAdmin = ((adminInfo & (ADMIN.superAdmin | ADMIN.humadAdmin)) !== 0);
+	//console.log(adminInfo, humadAdmin);
+	
+	const mobileVersion = isMobile();
 	const gClasses = globalStyles();
 	const alert = useAlert();
 
 	const [humadArray, setHumadArray] = useState([]);
 	const [humadMasterArray, setHumadMasterArray] = useState([]);
 	const [memberArray, setMemberArray] = useState([])
-	//const [hodArray, setHodArray] = useState([])
+	const [currentHumad, setCurrentHumad] = useState(null);
 	
-	const [active, setActive] = useState(true);
+	const [upgradeCount, setUpgradeCount] = useState(-1);
+	
+	const [newCategory, setNewCategory] = useState("");
 	
 	const [firstName, setFirstName] = useState("");
 	const [middleName, setMiddleName] = useState("");
 	const [lastName, setLastName] = useState("");
 
-
-	const [currentSelection, setCurrentSelection] = useState("Symptom");
-	const [remember, setRemember] = useState(false);
-	
-	const [isDrawerOpened, setIsDrawerOpened] = useState("");
-	//const [isListDrawer, setIsListDrawer] = useState("");
-
-	
-	const [filterItem, setFilterItem] = useState("");
-	const [filterItemText, setFilterItemText] = useState("");
-	const [filterItemArray, setFilterItemArray] = useState([]);
-	
-
-	const [emurName, setEmurName] = useState("");
-
 	const [modalRegister, setModalRegister] = useState(0);
 
+	const [isDrawerOpened, setIsDrawerOpened] = useState("");
+	
 	// pagination
-	const [left, setLeft] = useState(1);
-	const [totalPages, setTotalPages] = useState(1);
-	const [currentPage, setCurrentPage] = useState(1);
-	
-	
+	const [page, setPage] = useState(0);	
 	const [currentChar, setCurrentChar] = useState('A');
 	
   useEffect(() => {	
-		const getDetails = async () => {	
-			getHumad('A');
-		//setCurrentMember(getMemberName(props.member));
-		}
-		getDetails();
-
+		getHumad('A');
   }, []);
+	
 	async function getHumad(chrStr) {
 		try {
-		console.log('in humad fetch', chrStr )
+			//console.log('in humad fetch', chrStr )
 			let myUrl = `${process.env.REACT_APP_AXIOS_BASEPATH}/humad/listbyalphabet/${chrStr}`;
 			let resp = await axios.get(myUrl);
 			
 			setHumadArray(resp.data.humad);
 			setMemberArray(resp.data.member);
 
-			// calculate number of pages to display all data
-			let count = Math.floor(resp.data.member.length / ROWSPERPAGE);
-			if ((resp.data.member.length % ROWSPERPAGE) > 0)
-				++count;
-			setTotalPages(count);
-			console.log(count);
-			setLeft(1);
-			setCurrentPage(1);
 			setCurrentChar(chrStr);
 		} catch (e) {
 			console.log(e);
 			alert.error(`Error fetching Humad details`);
-			//setHumadMasterArray([]);
 			setMemberArray([]);
-			//setHodArray([]);
-			//setHumadArray([]);
+			setHumadArray([]);
 		}	
 	}
 
@@ -262,160 +238,218 @@ export default function Humad() {
   }
 
 	async function newPage(newChar) {
+		setPage(0);
 		await getHumad(newChar);
 		//console.log(num)
 	}
 	
+	// pagination function 
+	const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+	
+	function upgradeHumad(humadRec) {
+		let  myIndex = -1;  
+		for(var i = 0; i < HUMADCATEGORY.length; i++) {
+			if (HUMADCATEGORY[i].short === humadRec.membershipNumber.substr(0, 1)) {
+					myIndex = i;
+					break;
+			}
+    }
+		if (myIndex >= 0) {
+			setNewCategory(HUMADCATEGORY[myIndex-1].desc);
+			setUpgradeCount(myIndex);
+			setCurrentHumad(humadRec);
+			setIsDrawerOpened("Upgrade");
+		}
+	}
+		
+	async function upgradeHumadSubmit() {
+		try {
+			let myUrl = `${process.env.REACT_APP_AXIOS_BASEPATH}/humad/upgrade/${currentHumad.mid}/${newCategory}`;
+			let resp = await axios.get(myUrl);
+			setHumadArray([resp.data].concat(humadArray.filter(x => x.mid !== currentHumad.mid)));
+		} catch (e) {
+			console.log(e);
+			alert.error(`Error updating Humad category`);
+		}			
+	}
+	
+	
 	function DisplayAllHumad() {
-		if (memberArray.length !== humadArray.length ) return null;
-		//console.log(memberArray.length);
-		//console.log(humadArray.length);
+		if (memberArray.length === 0) return null;
 		return (
 		<div>
-		<Box  key={"CHARS"} className={gClasses.boxStyle} borderColor="black" borderRadius={7} border={1} >
-		<VsRolodex label="Last name with: " current={currentChar} onClick={newPage} />
-		</Box>
 		<Box  key={"MEMHDRBOX"} className={gClasses.boxStyle} borderColor="black" borderRadius={30} border={1} >
-		<Grid key={"MEMHDRGRID"} className={gClasses.noPadding} container justify="center" alignItems="center" >
-		<Grid align="left" item xs={8} sm={8} md={5} lg={5} >
-			<Typography className={gClasses.patientInfo2Brown}>Name (Member Id)</Typography>
+		<Grid key={"MEMHDRGRID"} className={gClasses.noPadding} container align="center" alignItems="center" >
+		<Grid align="left" item md={5} lg={5} >
+			<Typography className={gClasses.patientInfo2Brown}>Name</Typography>
 		</Grid>
-		<Grid align="center" item xs={2} sm={6} md={1} lg={1} >
-			<Typography className={gClasses.patientInfo2Brown}>Age</Typography>
-		</Grid>
-		<Grid align="center" item xs={2} sm={6} md={1} lg={1} >
-			<Typography className={gClasses.patientInfo2Brown}>Mobile</Typography>
-				{/*<Typography className={gClasses.patientInfo2Brown}>{m.mobile1}</Typography>*/}
-		</Grid>
-		<Grid align="center" item xs={12} sm={12} md={1} lg={1} >
+		<Grid align="center" item md={1} lg={1} >
 			<Typography className={gClasses.patientInfo2Brown}>Mem. No.</Typography>
 		</Grid>
-		<Grid align="center" item xs={2} sm={6} md={1} lg={1} >
+		<Grid align="center" item md={1} lg={1} >
+			<Typography className={gClasses.patientInfo2Brown}>Mobile</Typography>
+		</Grid>
+		<Grid align="center" item md={1} lg={1} >
+			<Typography className={gClasses.patientInfo2Brown}>Mem. Id</Typography>
+		</Grid>
+		<Grid align="center" item md={1} lg={1} >
 			<Typography className={gClasses.patientInfo2Brown}>Mem. Date</Typography>
 		</Grid>
-		<Grid align="center" item xs={2} sm={6} md={1} lg={1} >
+		<Grid align="center" item md={2} lg={2} >
 			<Typography className={gClasses.patientInfo2Brown}>Remarks</Typography>
 		</Grid>
-		<Grid align="center" item xs={2} sm={6} md={1} lg={1} />
-		<Grid align="center" item xs={2} sm={6} md={1} lg={1} >
-
+		<Grid align="center" item md={1} lg={1} >
 		</Grid>
 		</Grid>
 		</Box>
-		{memberArray.slice((currentPage-1)*ROWSPERPAGE, currentPage*ROWSPERPAGE).map( (m, index) => {
+		{memberArray.slice(page*ROWSPERPAGE, (page+1)*ROWSPERPAGE).map( (m, index) => {
 			let h = humadArray.find(x => x.mid === m.mid);
-			let ageGender = dispAge(m.dob, m.gender);
-			let d = new Date(h.membershipDate);
-			let memDateStr = (d.getFullYear() !== 1900)
-				? memDateStr = `${DATESTR[d.getDate()]}/${MONTHNUMBERSTR[d.getMonth()]}/${d.getFullYear()}`
-				: "";
+			if (!h) return null;
+			let memDateStr = dateString(h.membershipDate);
 			return (
 			<Box  key={"MEMBOX"+index} className={gClasses.boxStyle} borderColor="black" borderRadius={30} border={1} >
-			<Grid key={"MEMGRID"+index} className={gClasses.noPadding} container justify="center" alignItems="center" >
-				<Grid align="left" item xs={8} sm={8} md={5} lg={5} >
-					<Typography className={gClasses.patientInfo2}>{getMemberName(m)+" ( "+m.mid+" )"}</Typography>
-						{/*<Typography className={gClasses.patientInfo2}>{"( "+m.mid+" )"}</Typography>*/}
+			<Grid key={"MEMGRID"+index} className={gClasses.noPadding} container align="center" alignItems="center" >
+				<Grid align="left" item md={5} lg={5} >
+					<Typography className={gClasses.patientInfo2}>{getMemberName(m)+"(" + dispAge(m.dob, m.gender) + ")"}</Typography>
 				</Grid>
-				<Grid align="center" item xs={2} sm={6} md={1} lg={1} >
-					<Typography className={gClasses.patientInfo2}>{ageGender}</Typography>
-				</Grid>
-				<Grid align="center" item xs={2} sm={6} md={1} lg={1} >
-					<Typography className={gClasses.patientInfo2}>{m.mobile}</Typography>
-						{/*<Typography className={gClasses.patientInfo2}>{m.mobile1}</Typography>*/}
-				</Grid>
-				<Grid align="center" item xs={12} sm={12} md={1} lg={1} >
+				<Grid align="center" item md={1} lg={1} >
 					<Typography className={gClasses.patientInfo2}>{h.membershipNumber}</Typography>
 				</Grid>
-				<Grid align="center" item xs={2} sm={6} md={1} lg={1} >
+				<Grid align="center" item md={1} lg={1} >
+					<Typography className={gClasses.patientInfo2}>{m.mobile}</Typography>
+				</Grid>
+				<Grid align="center" item md={1} lg={1} >
+					<Typography className={gClasses.patientInfo2}>{m.mid}</Typography>
+				</Grid>
+				<Grid align="center" item md={1} lg={1} >
 					<Typography className={gClasses.patientInfo2}>{memDateStr}</Typography>
 				</Grid>
-				<Grid align="center" item xs={2} sm={6} md={1} lg={1} >
+				<Grid align="center" item md={2} lg={2} >
 					<Typography className={gClasses.patientInfo2}>{h.remarks}</Typography>
 				</Grid>
-				<Grid align="center" item xs={2} sm={6} md={1} lg={1} />
-				<Grid align="center" item xs={2} sm={6} md={1} lg={1} >
-
+				<Grid align="center" item md={1} lg={1} >
+				{((humadAdmin) && (h.membershipNumber.substr(0, 1) !== HUMADCATEGORY[0].short)) &&
+					<Upgrade onClick={() => upgradeHumad(h) } />
+				}
 				</Grid>
 			</Grid>
 			</Box>
 			)}
 		)}	
-		{(totalPages > 1) &&
-		<Box  key={"PAGES"} className={gClasses.boxStyle} borderColor="black" borderRadius={7} border={1} >
-			<VsPagination label="Page: " showStart showEnd count={totalPages} left={left} setLeft={setLeft} current={currentPage} onClick={setCurrentPage} />
-		</Box>
-		}
 		</div>	
 		)}
 	
-	function handleDate1(d) {
-		setEmurDate1(d);
-	}
-
-/*
-	function handleHumadSelect() {
-		let tmpHumad = (active) ?
-			humadMasterArray.filter(x => x.upgradeIndex === MAGICNUMBER) :
-			[].concat(humadMasterArray);
-
-		//console.log(tmpHumad);
-		
-		let tmpMember = [].concat(memberArray);
-		if (firstName !== "")
-			tmpMember = tmpMember.filter(x => x.firstName.toLowerCase().includes(firstName.toLowerCase()));
-		
-		if (middleName !== "")
-			tmpMember = tmpMember.filter(x => x.middleName.toLowerCase().includes(middleName.toLowerCase()));
-
-		if (lastName !== "")
-			tmpMember = tmpMember.filter(x => x.lastName.toLowerCase().includes(lastName.toLowerCase()));
-
-		let selectedMids = lodashMap(tmpMember, 'mid');
-		console.log(selectedMids);
-		
-		tmpHumad = tmpHumad.filter(x => selectedMids.includes(x.mid));
-		console.log(tmpHumad);
-		
-		setHumadArray(tmpHumad);
-	}
-*/
+	function DisplayMobileHumad() {
+		if (memberArray.length === 0) return null;
+		return (
+		<div>
+		<Box  key={"MEMHDRBOX"} className={gClasses.boxStyle} borderColor="black" borderRadius={30} border={1} >
+		<Grid key={"MEMHDRGRID"} className={gClasses.noPadding} container align="center" alignItems="center" >
+		<Grid align="left" item xs={9} sm={10} md={6} lg={6} >
+			<Typography className={gClasses.patientInfo2Brown}>Name</Typography>
+		</Grid>
+		<Grid align="center" item xs={3} sm={2} md={1} lg={1} >
+			<Typography className={gClasses.patientInfo2Brown}>Mobile</Typography>
+		</Grid>
+		</Grid>
+		</Box>
+		{memberArray.slice(page*ROWSPERPAGE, (page+1)*ROWSPERPAGE).map( (m, index) => {
+			let h = humadArray.find(x => x.mid === m.mid);
+			if (!h) return null;
+			let memDateStr = dateString(h.membershipDate);
+			let myInfo = "Mem.Id. : " + h.mid + "<br />";
+			myInfo +=    "Mem.No. : " +  h.membershipNumber + "<br />";
+			myInfo +=    "Mem.Date: " +  dateString(h.membershipDate);
+			if (h.remarks !== "")
+				myInfo +=  "<br />" + "Remarks:  " + h.remarks;
+			return (
+			<Box  key={"MEMBOX"+index} className={gClasses.boxStyle} borderColor="black" borderRadius={30} border={1} >
+			<Grid key={"MEMGRID"+index} className={gClasses.noPadding} container align="center" alignItems="center" >
+				<Grid align="left" item xs={9} sm={10}>
+					<Typography >
+					<span className={gClasses.patientInfo2}>{getMemberName(m)+"(" + dispAge(m.dob, m.gender) + ")"}</span>
+					{(humadAdmin) &&
+						<span align="left"
+							data-for={"HUMAD"+h.mid}
+							data-tip={myInfo}
+							data-iscapture="true"
+						>
+							<InfoIcon color="primary" size="small"/>
+						</span>
+					}
+					</Typography>
+				</Grid>
+				<Grid align="center" item xs={3} sm={2} >
+					<Typography className={gClasses.patientInfo2}>{m.mobile}</Typography>
+				</Grid>
+				</Grid>
+			</Box>
+			)}
+		)}	
+		</div>	
+	)}
+	
+	function DisplayAllToolTips() {
+	return(
+		<div>
+		{memberArray.slice(page*ROWSPERPAGE, (page+1)*ROWSPERPAGE).map( t =>
+			<ReactTooltip key={"HUMAD"+t.mid} type="info" effect="float" id={"HUMAD"+t.mid} multiline={true}/>
+		)}
+		</div>
+	)}	
 
 	return (
 	<div className={gClasses.webPage} align="center" key="main">
 	<CssBaseline />
 	<DisplayPageHeader headerName="Humad Members" groupName="" tournament=""/>
-	{(false) &&
-	<Grid className={gClasses.vgSpacing} key="PatientFilter" container alignItems="center" >
-	<Grid key={"CB"} item xs={12} sm={6} md={1} lg={2} >
-	</Grid>
-	<Grid key={"LN"} item xs={12} sm={6} md={3} lg={3} >
-	<VsTextSearch label="Member's last name" value={lastName}
-		onChange={(event) => { setLastName(event.target.value);  }}
-		onClear={() => setLastName("")}
-	/>
-	</Grid>
-	<Grid key={"FN"} item xs={12} sm={6} md={3} lg={3} >
-	<VsTextSearch label="Member's first name" value={firstName}
-		onChange={(event) => setFirstName(event.target.value)}
-		onClear={() => setFirstName("")}
-	/>
-	</Grid>
-	<Grid key={"MN"} item xs={12} sm={6} md={3} lg={3} >
-	<VsTextSearch label="Member's middle name" value={middleName}
-		onChange={(event) => setMiddleName(event.target.value)}
-		onClear={() => setMiddleName("")}
-	/>
-	</Grid>
-	<Grid key={"BN"} item xs={4} sm={2} md={1} lg={1} >
-		<VsButton	 name="Select" onClick={handleHumadSelect} />
-	</Grid>
-	</Grid>
-	}
 	<br />
-	<DisplayAllHumad />
-	<Drawer anchor="right" variant="temporary" open={isDrawerOpened !== ""} >
+	<Box  key={"CHARS"} className={gClasses.boxStyle} borderColor="black" borderRadius={7} border={1} >
+		<VsRolodex label="Last name with: " current={currentChar} onClick={newPage} />
+	</Box>
+	{ (mobileVersion) &&
+		<DisplayMobileHumad />
+	}
+	{ (!mobileVersion) &&
+		<DisplayAllHumad />
+	}
+	{(memberArray.length > ROWSPERPAGE) &&
+		<TablePagination
+			align="right"
+			rowsPerPageOptions={[ROWSPERPAGE]}
+			component="div"
+			labelRowsPerPage="Members per page"
+			count={memberArray.length}
+			rowsPerPage={ROWSPERPAGE}
+			page={page}
+			onPageChange={handleChangePage}
+			//onRowsPerPageChange={handleChangeRowsPerPage}
+			//showFirstButton={true}
+		/>
+	}
+	<DisplayAllToolTips />
+	<Drawer anchor="right" variant="temporary" open={isDrawerOpened != ""} >
 	<Box className={gClasses.boxStyle} borderColor="black" borderRadius={7} border={1} >
 	<VsCancel align="right" onClick={() => { setIsDrawerOpened("")}} />
+	{(isDrawerOpened === "Upgrade") &&
+	<div>
+		<br />
+		<Typography className={gClasses.patientInfo2Blue}>Upgrade Humad membership category</Typography>
+		<br />
+		<VsRadioGroup 
+			value={newCategory} onChange={(event) => setNewCategory(event.target.value)}
+			radioList={HUMADCATEGORY.slice(0, upgradeCount)} radioField="desc"
+		/>
+		<br />
+		<VsButton name="Upgrade" onClick={upgradeHumadSubmit} />
+	</div>
+	}
 	</Box>
 	</Drawer>
   </div>

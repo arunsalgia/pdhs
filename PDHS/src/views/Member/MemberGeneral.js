@@ -40,17 +40,21 @@ import {
 } from "CustomComponents/CustomComponents.js"
 
 import { 
-MEMBERTITLE, RELATION, SELFRELATION, GENDER, BLOODGROUP, MARITALSTATUS,
-DATESTR, MONTHNUMBERSTR,
-CASTE, HUMADSUBCASTRE,
+	ADMIN,
+	MEMBERTITLE, RELATION, SELFRELATION, GENDER, BLOODGROUP, MARITALSTATUS,
+	DATESTR, MONTHNUMBERSTR,
+	CASTE, HUMADSUBCASTRE,
+	APPLICATIONTYPES,
 } from "views/globals.js";
 
 
 import { 
+	getAdminInfo,
 	getImageName,
 	vsDialog,
 	getMemberName,
 	dispAge,
+	applicationSuccess,
 } from "views/functions.js";
 
 import { 
@@ -59,16 +63,18 @@ import {
 import {  } from 'views/functions';
 
 
-var loginHid, loginMid;
-var adminData ={superAdmin: false, humadAdmin: false, pjymAdmin: false, prwsAdmin: false} ;
-export default function MemberGeneral (props) {
-	let onlytemp = sessionStorage.getItem("hod");
-	//console.log(JSON.parse(onlytemp));
 
+export default function MemberGeneral (props) {
+	const loginHid = parseInt(sessionStorage.getItem("hid"), 10);
+	const loginMid = parseInt(sessionStorage.getItem("mid"), 10);
+	const isMember = props.isMember;
+	console.log(loginHid, isMember);
+	
+	const adminInfo = getAdminInfo();
 	const gClasses = globalStyles();
 	const alert = useAlert();
 
-	const [currentHod, setCurrentHod] = useState(JSON.parse(onlytemp));
+	const [currentHod, setCurrentHod] = useState(props.hod);
 	const [existingGotra, setExistingGotra] = useState(true);
 	
 	const [memberArray, setMemberArray] = useState([])
@@ -118,14 +124,9 @@ export default function MemberGeneral (props) {
 
 	
   useEffect(() => {	
-		const getDetails = async () => {	
-			getGotraList();
+		const getDetails = async () => {		
 		}
-
-		loginHid = Number(sessionStorage.getItem("hid"));
-		loginMid = Number(sessionStorage.getItem("mid"));
-		adminData = JSON.parse(sessionStorage.getItem("adminRec"));
-		getDetails();
+		getGotraList();
   }, []);
 
 	async function getGotraList() {
@@ -268,38 +269,61 @@ export default function MemberGeneral (props) {
 		setRegisterStatus(err);
 	}
 
+	async function handleApplyGotra() {
+		//console.log("Apply");
+		let tmp = encodeURIComponent(JSON.stringify({
+			owner: 'PRWS',
+			desc: APPLICATIONTYPES.editGotra,
+			name: sessionStorage.getItem("userName"),
+			hid: currentHod.hid,
+			mid: 0,
+			isMember: isMember,
+			data: {gotra: emurAddr1, caste: emurAddr2, subCaste: emurAddr3}
+		}));
+		try {
+			let myUrl = `${process.env.REACT_APP_AXIOS_BASEPATH}/application/add/${tmp}`;
+			let resp = await axios.get(myUrl);
+			applicationSuccess(resp.data);
+		} catch (e) {
+			console.log(e);
+			alert.error(`Error applying for Gotra/Caste change`);
+		}
+		setIsDrawerOpened("");
+	}
+	
+	
 	async function handleEditGotra() {
-		let myGotra = emurAddr1.trim();
-		if (myGotra === "") return setRegisterStatus(1001);
+		
 
 	}
 
+	function handleEditApplyGotra() {
+		console.log("Common");
+		if (isDrawerOpened === "APPLYGOTRA") 
+			handleApplyGotra();
+		else
+			handleEditGotra();
+	}
+
 	function editGotraDetails(action) {
-		console.log("1Action is "+action)
+		//console.log("Action is "+action)
 		setEmurAddr1(currentHod.gotra);
 		setEmurAddr2(currentHod.caste);
 		setEmurAddr3(currentHod.subCaste);
 		setIsDrawerOpened(action);
-		console.log("2Action is "+action)
+		//console.log("2Action is "+action)
 	}
 
 	function DisplayGeneralInformation() {
-		//console.log(currentHod);
-		let edit = (currentHod.hid === loginHid);
-		let admin = adminData.superAdmin;
+		let family = (currentHod.hid === loginHid);
+		let admin = (adminInfo & (ADMIN.superAdmin | ADMIN.prwsAdmin) !== 0);
 	return (
 	<Box  className={gClasses.boxStyle} borderColor="black" borderRadius={7} border={1} >
-		{(admin) &&
-		<div align = "right">
-		<VsButton name="Edit Gotra, Caste, subcaste" onClick={() => editGotraDetails("EDITGOTRA")} />
-		<VsButton name="Edit General Details" onClick={editgeneralDetials} />
-		</div>
-		}
-		{(!admin && edit) &&
-		<div align = "right">
-		<VsButton name="Application for Gotra, Caste, subcaste" onClick={() => editGotraDetails("APPLYGOTRA")} />
-		<VsButton name="Edit General Details" onClick={editgeneralDetials} />
-		</div>
+		{(family || admin) &&
+			<div align = "right">
+			<VsButton name="Application for Gotra, Caste, subcaste" onClick={() => editGotraDetails("APPLYGOTRA")} />
+			<VsButton name="Edit General Details" onClick={editgeneralDetials} />
+			</div>
 		}
 		<DisplaySingleLine msg1="Gotra" msg2={currentHod.gotra} />
 		<BlankArea />
@@ -358,7 +382,7 @@ export default function MemberGeneral (props) {
 	<Box className={gClasses.boxStyle} borderColor="black" borderRadius={7} border={1} >
 	<VsCancel align="right" onClick={() => { setIsDrawerOpened("")}} />
 	{((isDrawerOpened === "EDITGOTRA") || (isDrawerOpened === "APPLYGOTRA")) &&
-		<ValidatorForm align="left" className={gClasses.form} onSubmit={handleEditGotra}>
+		<ValidatorForm align="left" className={gClasses.form} onSubmit={handleEditApplyGotra}>
 			<Typography className={gClasses.title}>{((isDrawerOpened === "EDITGOTRA") ? "Edit" : "Application to change") + " Gotra, Caste, Sub Caste"}</Typography>
 			<br />
 			<Grid className={gClasses.noPadding} key="CASTE" container alignItems="center" align="center">

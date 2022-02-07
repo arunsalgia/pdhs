@@ -79,7 +79,7 @@ return (
 <div align="center">
 	<button className={classes.label }>{props.label}</button>
 {PAGES.map( (p, index) => 
-	<button className={(p === props.current) ? classes.selected : classes.normal }
+	<button key={"ROL"+p} className={(p === props.current) ? classes.selected : classes.normal }
 	onClick={() => props.onClick(p) } >
 	{p}
 	</button>		

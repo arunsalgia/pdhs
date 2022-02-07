@@ -23,25 +23,31 @@ import Menu from '@material-ui/core/Menu';
 import {red, blue, green, deepOrange, white} from '@material-ui/core/colors';
 import Divider from '@material-ui/core/Divider';
 
-
-//import Customer from "views/SuperUser/Customer";
-//import Sample from "views/SuperUser/Sample.js"
-
 import Directory from 'views/Directory/Directory'
 import Humad from 'views/Humad/Humad'
 import Pjym from 'views/Pjym/Pjym'
 
 import Profile from "views/Profile/UserProfile" 
-import Home from "views/MED/Home.js";
+//import Home from "views/MED/Home.js";
+import UserApplication from "views/Application/UserApplication";
+import Application from "views/Application/Application";
+
 
 // only for admin
 import Gotra from "views/SuperUser/Gotra";
 import PDHSAdmin from "views/SuperUser/PDHSAdmin";
+import AdminApplication from "views/Application/AdminApplication";
+
 
 import Modal from 'react-modal';
 // import download from 'js-file-downloader';
-import { BlankArea } from './CustomComponents';
-import {cdRefresh, specialSetPos, upGradeRequired, isMobile,
+//import { BlankArea } from './CustomComponents';
+
+import {
+	ADMIN, 
+} from "views/globals.js";
+
+import {cdRefresh, specialSetPos, upGradeRequired, isMobile, getAdminInfo,
   downloadApk, clearBackupData,
   checkIdle, setIdle,
   internalToText, textToInternal,
@@ -168,6 +174,9 @@ export function setTab(num) {
 }
 
 export function CricDreamTabs() {
+	var adminInfo = getAdminInfo();
+	const superAdmin = ((adminInfo & ADMIN.superAdmin) > 0);
+
   const history = useHistory();
   const classes = useStyles();
   // for menu 
@@ -263,16 +272,19 @@ export function CricDreamTabs() {
   const handleDirectory = () => { handleClose(); setMenuValue(901);}
 	const handleHumad = () => { handleClose(); setMenuValue(902);}
 	const handlePjym = () => { handleClose(); setMenuValue(903);}
-
+	const handleUserApp = () => { handleClose(); setMenuValue(904);}
+	
+	
   const handleGotra = () => { handleClose(); setMenuValue(1001);}
 	const handleAdmin = () => { handleClose(); setMenuValue(1002);}
-
+	const handleAdminApplication = () => { handleClose(); setMenuValue(1003);}
+	
   function DisplayCdItems() {
 		//console.log("CD Value", value);
     switch(value) {
       case 1: 
 				if (process.env.REACT_APP_SHOWHOMEPAGE === 'true')
-					return <Home />;
+					return <Directory />;
 				else 
 					return <Directory />
 
@@ -283,9 +295,11 @@ export function CricDreamTabs() {
       case 901: return <Directory />;
       case 902: return <Humad />;
 			case 903: return <Pjym />;
+			case 904: return <Application userType="user" />;
 			
       case 1001: return <Gotra />;
       case 1002: return <PDHSAdmin />;
+			case 1003: return <Application userType="admin" />;
 
       default: return  null;
     }
@@ -323,7 +337,7 @@ export function CricDreamTabs() {
         <Typography className={classes.new} align="center">
           Latest Version {latestApk.version}
         </Typography>
-        <BlankArea/>
+        <br />
         <Typography className={classes.new} align="center">
           What is new
         </Typography>
@@ -333,7 +347,7 @@ export function CricDreamTabs() {
           className={classes.whatIsNew}
           defaultValue={latestApk.text} 
         />
-        <BlankArea />
+        <br />
         <Button align="center" key="upgrade" variant="contained" color="primary" size="medium"
         className={classes.visitButton} onClick={handleUpgrade}>Update Now
         </Button>
@@ -407,7 +421,7 @@ export function CricDreamTabs() {
               >
 								<Typography className={classes.title}>{sessionStorage.getItem("userName")}</Typography>
 								<Divider className={classes.divider} />
-                {(true) &&
+                {(superAdmin) &&
                   <div>
                   <MenuItem onClick={handleAdmin}>
 									<Typography className={classes.menuStyle}>Admin</Typography>
@@ -415,7 +429,18 @@ export function CricDreamTabs() {
                   <MenuItem onClick={handleGotra}>
 									<Typography className={classes.menuStyle}>Gotra</Typography>
 									</MenuItem>
-  								<Divider className={classes.divider} />
+                  <MenuItem onClick={handleAdminApplication}>
+									<Typography className={classes.menuStyle}>Application</Typography>
+									</MenuItem>  								
+									<Divider className={classes.divider} />
+                  </div>
+                }
+								{((!superAdmin) && (adminInfo > 0) ) &&
+                  <div>
+                  <MenuItem onClick={handleAdminApplication}>
+									<Typography className={classes.menuStyle}>Application</Typography>
+									</MenuItem>  								
+									<Divider className={classes.divider} />
                   </div>
                 }
 								{(itIsMobile) &&
@@ -429,6 +454,10 @@ export function CricDreamTabs() {
 									<MenuItem onClick={handlePjym}>
 									<Typography className={classes.menuStyle}>Pjym</Typography>
 									</MenuItem>
+									<MenuItem onClick={handleUserApp}>
+									<Typography className={classes.menuStyle}>Application</Typography>
+									</MenuItem>
+									<Divider className={classes.divider}/>
 									</div>
 								}
 								<div align="center">
@@ -438,7 +467,6 @@ export function CricDreamTabs() {
 									</div>
 								}
                 {/*<MenuItem onClick={handleContactUs}>Contact Us</MenuItem>*/}
-								<Divider className={classes.divider}/>
 								<MenuItem onClick={() => {handleClose(); handleLogout(); }}>
 									<Typography className={classes.menuStyle}>Logout</Typography>
 								</MenuItem>
@@ -465,6 +493,7 @@ export function CricDreamTabs() {
 						<Button color="inherit" className={classes.visitButton} onClick={handleDirectory}>Directory</Button>
 						<Button color="inherit" className={classes.visitButton} onClick={handleHumad}>Humad</Button>
 						<Button color="inherit" className={classes.visitButton} onClick={handlePjym}>Pjym</Button>
+						<Button color="inherit" className={classes.visitButton} onClick={handleUserApp}>Application</Button>
 						</div>
 					}
 					{(false) &&

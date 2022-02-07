@@ -52,31 +52,17 @@ router.get('/withmap', async function (req, res) {
 router.get('/listwithnames', async function (req, res) {
   setHeader(res);
 
-	let myPjym = await M_Pjym.find({active: true}, {_id: 0, __v: 0});
-	let allMids = _.map(myPjym, 'mid');
-	let allNames = await M_Member.find({mid: {$in: allMids}}, 
-	{_id: 0, mid: 1, title: 1, firstName: 1, middleName: 1, lastName: 1, 
-		dob: 1, gender: 1});
-
-	let finalData = [];
-	for(i=0; i<myPjym.length; ++i) {
-		let nameRec = allNames.find(x => x.mid === myPjym[i].mid);
-		let tmp = {
-			hid: 								myPjym[i].hid,
-			mid: 								myPjym[i].mid,
-			membershipNumber: 	myPjym[i].membershipNumber,
-			membershipDate: 		myPjym[i].membershipDate,
-			membershipReceipt: 	myPjym[i].membershipReceipt,
-			upgradeIndex: 			myPjym[i].upgradeIndex,
-			title:							nameRec.title,
-			memberName:					getMemberName(nameRec),
-			dob:								nameRec.dob,
-			gender:							nameRec.gender
-		}
-		finalData.push(tmp);
-	}
-
-	sendok(res, finalData);
+	//console.log(new Date());
+	let allPjym = await M_Pjym.find({active: true}, {_id: 0, __v: 0});
+	console.log(new Date());
+	let allNames = await M_Member.find(
+		{pjymMember: true, ceased: false}, 
+		{_id: 0, mid: 1, alias: 1, mobile: 1, title: 1, firstName: 1, middleName: 1, lastName: 1, dob: 1, gender: 1}
+	).sort({lastName: 1, firstName: 1, middleName: 1 });
+	//console.log(new Date());
+	//console.log(allPjym.length, allNames.length);
+	
+	sendok(res, {pjym: allPjym, member: allNames});
 });
 
 router.get('/listbyalphabet/:chrStr', async function (req, res) {
@@ -86,7 +72,7 @@ router.get('/listbyalphabet/:chrStr', async function (req, res) {
 	
 	let allNames = await M_Member.find(
 		{lastName: { $regex: "^"+chrStr, $options: "i" }, pjymMember: true,  ceased: false},
-		{_id: 0, mid: 1, title: 1, firstName: 1, middleName: 1, lastName: 1, dob: 1, gender: 1}
+		{_id: 0, mobile: 1, mid: 1, title: 1, firstName: 1, middleName: 1, lastName: 1, dob: 1, gender: 1}
 		).sort({lastName: 1, middleName: 1, firstName: 1});
 		
 	let allMids = _.map(allNames, 'mid');
@@ -180,6 +166,36 @@ router.get('/hod/:hid', async function (req, res) {
 	sendok(res, myData);
 });		
 
+router.get('/add/:hid/:mid/:lastName', async function (req, res) {
+  setHeader(res);
+  var {hid, mid, lastName } = req.params;
+	hid = Number(hid);
+	mid = Number(mid);
+	lastName =lastName.toUpperCase();
+	
+	let currentRec = await M_Pjym.findOne({mid: mid, active: true});
+	if (currentRec) return senderr(res, 601, "Already a member of PJYM");
+	
+	let tmpRec = await M_Pjym.find({ membershipNumber: {$regex: "^"+lastName.substr(0, 1)} }).limit(1).sort({upgradeIndex: -1});
+	let newNumber = (tmpRec.length > 0) ? tmpRec[0].upgradeIndex + 1 : 1;
+	console.log(newNumber);
+	
+	let newRec = new M_Humad();
+	newRec.hid = hid;
+	newRec.mid = mid;
+	newRec.membershipNumber = lastName.substr(0, 1) + "\\" + newNumber.toString();
+	newRec.upgradeIndex = newNumber;
+	newRec.membershipDate = new Date();
+	newRec.membershipReceipt  = lastName.substr(0, 1) + "\\" + newNumber.toString();
+	newRec.active = true;
+	
+	console.log(newRec);
+	
+	return senderr(res, 601, "Test");
+	
+	sendok(res, newRec);
+});		
+
 
 router.get('/test/:pinCode', async function (req, res) {
   setHeader(res);
@@ -193,6 +209,15 @@ router.get('/test/:pinCode', async function (req, res) {
 	//publishAppointments(res, {cid: cid, date: Number(date), month: Number(month), year: Number(year)})
 });	
 
+router.get('/test1', async function (req, res) {
+  setHeader(res);
+	let allRecs = await M_Pjym.find({});
+	for(var i=0; i<allRecs.length; ++i) {
+		allRecs[i].upgradeIndex = Number(allRecs[i].membershipNumber.substr(2));
+		await allRecs[i].save();
+	}
+	sendok(res, "Done");
+});
 
 
 function sendok(res, usrmsg) { res.send(usrmsg); }
